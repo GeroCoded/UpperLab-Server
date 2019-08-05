@@ -8,7 +8,6 @@ exports.verificarToken = function verificarToken(req, res, next) {
 	auth.verifyIdToken(token)
 	.then( (decodedToken)=>{
 
-		// next(decodedToken);
 		next();
 		
 	})
@@ -24,7 +23,10 @@ exports.verificarToken = function verificarToken(req, res, next) {
 
 
 exports.esAdmin = function esAdmin(req, res, next) {
-	auth.verifyIdToken(idToken)
+	
+	var token = req.query.token;
+
+	auth.verifyIdToken(token)
 	.then( (decodedToken)=>{
 		if ( decodedToken.isAdmin ) {
 			next();

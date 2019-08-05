@@ -8,35 +8,38 @@ var app = express();
 
 
 
-const alumnosRef = firestore.collection('alumnos');
+const profesoresRef = firestore.collection('profesores');
 
 // ====================================================== //
-// ============ Consultar alumno por matrícula ========== //
+// ============ Consultar profesor por matrícula ========== //
 // ====================================================== //
 app.get('/:matricula', mdAuthentication.verificarToken, (req, res)=>{
 	
 	var matricula = req.params.matricula.toUpperCase();
 
-	alumnosRef.doc(matricula).get()
-	.then( alumnoDoc => {
+	profesoresRef.doc(matricula).get()
+	.then( profesorDoc => {
 
-		if ( !alumnoDoc.exists ) {
+		if ( !profesorDoc.exists ) {
 			return res.status(200).json({
 				ok: false,
-				message: 'No existe ningún alumno con la matrícula ' + matricula,
+				message: 'No existe ningún profesor con la matrícula ' + matricula,
 			});
 		}
 
+		var profesor = profesorDoc.data();
+		delete profesor.contrasena;
+
 		return res.status(200).json({
 			ok: true,
-			alumno: alumnoDoc.data()
+			profesor
 		});
 
 	})
 	.catch( err => {
 		return res.status(500).json({
 			ok: false,
-			message: 'Error al buscar alumno',
+			message: 'Error al buscar profesor',
 			error: err
 		});
 	});
@@ -46,32 +49,36 @@ app.get('/:matricula', mdAuthentication.verificarToken, (req, res)=>{
 
 
 // ====================================================== //
-// ======= Consultar alumnos por grupo (y carrera) ====== //
+// ======= Consultar profesores por carrera ====== //
 // ====================================================== //
-app.get('/:carrera/:grupo', mdAuthentication.verificarToken, (req, res)=>{
+app.get('/carrera/:carrera', mdAuthentication.verificarToken, (req, res)=>{
 	
-	var carrera_grupo = req.params.carrera + '-' + req.params.grupo;
+	var carrera = req.params.carrera;
 
-	alumnosRef.where('grupo', '==', carrera_grupo).get()
+	profesoresRef.where(`carreras.${ carrera }`, '==', true).get()
 	.then( snapshot => {
 
-		var alumnos = [];
+		var profesores = [];
 
 		if ( snapshot.empty ) {
 			return res.status(200).json({
 				ok: true,
-				message: 'No existe ningún alumno en el grupo de ' + carrera_grupo,
-				alumnos
+				message: 'No existe ningún profesor en la carrera de ' + carrera,
+				profesores
 			});
 		}
 
-		snapshot.forEach( alumno => {
-			alumnos.push(alumno.data());
+		var profesorSinContrasena;
+		
+		snapshot.forEach( profesor => {
+			profesorSinContrasena = profesor.data();
+			delete profesorSinContrasena.contrasena;
+			profesores.push(profesorSinContrasena);
 		});
 
 		return res.status(200).json({
 			ok: true,
-			alumnos
+			profesores
 		});
 
 	})
@@ -85,41 +92,40 @@ app.get('/:carrera/:grupo', mdAuthentication.verificarToken, (req, res)=>{
 
 
 // ====================================================== //
-// ================= Crear nuevo Alumno ================= //
+// ================= Crear nuevo Profesor ================= //
 // ====================================================== //
 app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 	
-	var alumno = req.body.alumno;
+	var profesor = req.body.profesor;
 
-	var validaciones = userValidator.validarDatosDelUsuario( alumno, res);
+	var validaciones = userValidator.validarDatosDelUsuario( profesor, res);
 	
 	if ( validaciones != null ) {
 		return validaciones;
 	}
 	
-	alumno.matricula = alumno.matricula.toUpperCase();
-	alumno.correo = alumno.correo.toLowerCase();
-	alumno.grupo = alumno.grupo.toUpperCase();
+	profesor.matricula = profesor.matricula.toUpperCase();
+	profesor.correo = profesor.correo.toLowerCase();
 
-	alumnosRef.where('matricula', '==', alumno.matricula).get().then( snapshot => {
+	profesoresRef.where('matricula', '==', profesor.matricula).get().then( snapshot => {
 
 		if ( !snapshot.empty ) {
 			return res.status(400).json({
 				ok: false,
-				message: 'Ya existe un alumno con la matricula ' + alumno.matricula
+				message: 'Ya existe un profesor con la matricula ' + profesor.matricula
 			});
 		}
 
-		alumnosRef.doc(alumno.matricula).set(alumno).then( alumnoCreado => {
+		profesoresRef.doc(profesor.matricula).set(profesor).then( profesorCreado => {
 	
-			var displayName = alumno.nombre + ' ' + alumno.apellidoP;
+			var displayName = profesor.nombre + ' ' + profesor.apellidoP;
 			
 	
-			authController.crearCuentaDeUsuario(alumno.correo, alumno.matricula, displayName).then( usuario => {
+			authController.crearCuentaDeUsuario(profesor.correo, profesor.matricula, displayName).then( usuario => {
 				
 				var customClaims = {
-					isAlumno: true,
-					isProfesor: false,
+					isAlumno: false,
+					isProfesor: true,
 					isAdmin: false,
 					isSuperadmin: false
 				};
@@ -128,13 +134,13 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 					
 					return res.status(201).json({
 						ok: true,
-						alumno: usuario
+						profesor: usuario
 					});
 					
 				}).catch( err => {
 					return res.status(500).json({
 						ok: true,
-						message: 'Error al asignar el rol de alumno',
+						message: 'Error al asignar el rol de profesor',
 						error: err
 					});
 				});
@@ -143,14 +149,14 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 			.catch( err => {
 				return res.status(400).json({
 					ok: true,
-					message: 'El alumno se creó, pero ya existía una cuenta de autenticación con su correo',
+					message: 'El profesor se creó, pero ya existía una cuenta de autenticación con su correo',
 					error: err
 				});
 			});
 		}).catch( err => {
 			return res.status(500).json({
 				ok: false,
-				message: 'Error almacenando nuevo alumno',
+				message: 'Error almacenando nuevo profesor',
 				error: err
 			});
 		});
@@ -166,42 +172,41 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 
 
 // ========================================================== //
-// ================= Modificar nuevo Alumno ================= //
+// ================= Modificar nuevo Profesor ================= //
 // ========================================================== //
 app.put('/', mdAuthentication.verificarToken, (req, res)=>{
-	var alumno = req.body.alumno;
+	var profesor = req.body.profesor;
 	
-	var validaciones = userValidator.validarDatosDelUsuario( alumno, res);
+	var validaciones = userValidator.validarDatosDelUsuario( profesor, res);
 	
 	if ( validaciones != null ) {
 		return validaciones;
 	}
 	
-	var matricula = alumno.matricula.toUpperCase();
-	delete alumno.matricula;
-	alumno.correo = alumno.correo.toLowerCase();
-	alumno.grupo = alumno.grupo.toUpperCase();
+	var matricula = profesor.matricula.toUpperCase();
+	delete profesor.matricula;
+	profesor.correo = profesor.correo.toLowerCase();
 
-	alumnosRef.where('matricula', '==', matricula).get().then( snapshot => {
+	profesoresRef.where('matricula', '==', matricula).get().then( snapshot => {
 
 		if ( snapshot.empty ) {
 			return res.status(400).json({
 				ok: false,
-				message: 'No existe el alumno con la matricula ' + matricula
+				message: 'No existe el profesor con la matricula ' + matricula
 			});
 		}
 		
-		alumnosRef.doc(matricula).set(alumno, {merge: true}).then( alumnoCreado => {
+		profesoresRef.doc(matricula).set(profesor, {merge: true}).then( profesorCreado => {
 	
 			return res.status(201).json({
 				ok: true,
-				alumno: alumnoCreado
+				profesor: profesorCreado
 			});
 			
 		}).catch( err => {
 			return res.status(500).json({
 				ok: false,
-				message: 'Error actualizando alumno',
+				message: 'Error actualizando profesor',
 				error: err
 			});
 		});
@@ -217,33 +222,33 @@ app.put('/', mdAuthentication.verificarToken, (req, res)=>{
 
 
 // ====================================================== //
-// =================== Eliminar Alumno ================== //
+// =================== Eliminar Profesor ================== //
 // ====================================================== //
 app.delete('/:matricula', (req, res) => {
 	
 	var matricula = req.params.matricula;
 	matricula = matricula.toUpperCase();
 
-	alumnosRef.doc(matricula).get().then( (alumnoDoc) => {
+	profesoresRef.doc(matricula).get().then( (profesorDoc) => {
 
-		if ( !alumnoDoc.exists ) {
+		if ( !profesorDoc.exists ) {
 			return res.status(400).json({
 				ok: false,
-				message: 'No se encontró al alumno con la matrícula ' + matricula
+				message: 'No se encontró al profesor con la matrícula ' + matricula
 			});
 		}
 
-		alumnosRef.doc( matricula ).delete().then( () => {
+		profesoresRef.doc( matricula ).delete().then( () => {
 			authController.obtenerCuentaDeUsuarioPorCorreo( matricula ).then( usuario => {
 				authController.eliminarCuentaDeUsuario( usuario.uid ).then( () => {
 					return res.status(200).json({
 						ok: true,
-						message: `Alumno ${ alumnoDoc.data().nombre } eliminado satisfactoriamente`
+						message: `Profesor ${ profesorDoc.data().nombre } eliminado satisfactoriamente`
 					});
 				}).catch( err => {
 					return res.status(500).json({
 						ok: false,
-						message: 'Error al eliminar cuenta de autenticación de alumno con matrícula ' + matricula,
+						message: 'Error al eliminar cuenta de autenticación de profesor con matrícula ' + matricula,
 						error: err
 			
 					});
@@ -251,21 +256,21 @@ app.delete('/:matricula', (req, res) => {
 			}).catch( err => {
 				return res.status(200).json({
 					ok: false,
-					message: 'El registro en la BD del alumno se eliminó pero, al parecer, el alumno no tenía ninguna cuenta vinculada para autenticarse',
+					message: 'El registro en la BD del profesor se eliminó pero, al parecer, el profesor no tenía ninguna cuenta vinculada para autenticarse',
 					error: err
 				});
 			});
 		}).catch( err => {
 			return res.status(500).json({
 				ok: false,
-				message: 'Error al eliminar registro de alumno con matrícula ' + matricula,
+				message: 'Error al eliminar registro de profesor con matrícula ' + matricula,
 				error: err
 			});
 		});
 	}).catch( err => {
 		return res.status(500).json({
 			ok: false,
-			message: 'Error al buscar alumno con matrícula ' + matricula,
+			message: 'Error al buscar profesor con matrícula ' + matricula,
 			error: err
 		});
 	});

@@ -39,9 +39,11 @@ app.use(bodyParser.json());
 
 var loginRoutes = require('./routes/login');
 var alumnoRoutes = require('./routes/alumno');
+var alumnoRoutes = require('./routes/profesor');
 
 app.use('/login', loginRoutes);
 app.use('/alumno', alumnoRoutes);
+app.use('/profesor', alumnoRoutes);
 
 // Escuchar peticiones del express
 app.listen(3000, ()=>{
