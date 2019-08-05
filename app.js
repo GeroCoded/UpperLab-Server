@@ -1,14 +1,17 @@
 // Requires
 var express = require('express');
 
+var bodyParser = require('body-parser');
 
+// FIREBASE ADMIN SDK
 var admin = require('firebase-admin');
 var serviceAccount = require('./serviceAccountKey.json');
-
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://upperlab-e81d9.firebaseio.com'
+	credential: admin.credential.cert(serviceAccount),
+	databaseURL: 'https://upperlab-e81d9.firebaseio.com'
 });
+
+
 
 // var mongoose = require('mongoose');
 
@@ -16,28 +19,29 @@ admin.initializeApp({
 var app = express();
 
 
-// Rutas
-app.get('/', (req, res, next )=>{
-
-	admin.auth().getUser('GCLO151861')
-		.then( userRecord => {
-			console.log('Successfully fetched user data:', userRecord.toJSON());
-			return res.status(200).json({
-				ok: true,
-				message: 'Petición realizada correctamente',
-				userRecord
-			});
-		})
-		.catch( err => {
-			console.log('Error fetching user data:', err);
-			return res.status(400).json({
-				ok: false,
-				message: 'Error fetching user data',
-				error: err
-			});
-		});
+// 
+app.use(function(req, res, next) {
+	res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	res.header("Access-Cotnrol-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+	next();
 });
+  
 
+
+
+// ~~~~~~~~~~~~~ Body Parser ~~~~~~~~~~~~~ //
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false})); 
+// parse application/json
+app.use(bodyParser.json());
+
+
+var loginRoutes = require('./routes/login');
+var alumnoRoutes = require('./routes/alumno');
+
+app.use('/login', loginRoutes);
+app.use('/alumno', alumnoRoutes);
 
 // Escuchar peticiones del express
 app.listen(3000, ()=>{
