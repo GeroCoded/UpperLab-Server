@@ -11,3 +11,31 @@ exports.validarDominioDelCorreo = function validarDominioDelCorreo( correo ) {
 	return '@'+correoPartido[1] === DOMINIO_CORREO;
 };
 
+exports.validarDatosDelUsuario = function validarDatosDelUsuario( usuario, res ) {
+
+	if ( usuario == null || usuario.matricula == null || usuario.correo == null ) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos completos.'
+		});
+	}
+
+	usuario.matricula = usuario.matricula.toUpperCase();
+	usuario.correo = usuario.correo.toLowerCase();
+
+	if ( !this.validarDominioDelCorreo( usuario.correo ) ) {
+		return res.status(400).json({
+			ok: false,
+			message: 'El correo no pertenece a la Universidad Politécnica del Estado de Morelos.'
+		});
+	}
+
+	if ( !this.validarMatriculaYCorreo( usuario.matricula, usuario.correo ) ) {
+		return res.status(400).json({
+			ok: false,
+			message: 'La matrícula y el correo no coinciden'
+		});
+	}
+	
+};
+

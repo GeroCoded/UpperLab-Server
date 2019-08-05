@@ -10,22 +10,58 @@ var app = express();
 
 const alumnosRef = firestore.collection('alumnos');
 
-app.get('/:carrera/:grupo',/* mdAuthentication.verificarToken,*/ (req, res)=>{
+// ====================================================== //
+// ============ Consultar alumno por matrícula ========== //
+// ====================================================== //
+app.get('/:matricula', mdAuthentication.verificarToken, (req, res)=>{
 	
-	
-	var carrera = req.params.carrera;
-	var grupo = req.params.grupo;
+	var matricula = req.params.matricula;
 
-	alumnosRef.where('grupo', '==', carrera + '-' + grupo).get()
+	alumnosRef.doc(matricula).get()
+	.then( alumnoDoc => {
+
+		if ( !alumnoDoc.exists ) {
+			return res.status(200).json({
+				ok: false,
+				message: 'No existe ningún alumno con la matrícula ' + matricula,
+			});
+		}
+
+		return res.status(200).json({
+			ok: true,
+			alumno: alumnoDoc.data()
+		});
+
+	})
+	.catch( err => {
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al buscar alumno',
+			error: err
+		});
+	});
+});
+
+
+
+
+// ====================================================== //
+// ======= Consultar alumnos por grupo (y carrera) ====== //
+// ====================================================== //
+app.get('/:carrera/:grupo', mdAuthentication.verificarToken, (req, res)=>{
+	
+	var carrera_grupo = req.params.carrera + '-' + req.params.grupo;
+
+	alumnosRef.where('grupo', '==', carrera_grupo).get()
 	.then( snapshot => {
 
 		var alumnos = [];
 
 		if ( snapshot.empty ) {
-			console.log('No hay alumnos... Snapshot: ');
-			console.log(snapshot);
 			return res.status(200).json({
-				ok: true
+				ok: true,
+				message: 'No existe ningún alumno en el grupo de ' + carrera_grupo,
+				alumnos
 			});
 		}
 
@@ -51,72 +87,132 @@ app.get('/:carrera/:grupo',/* mdAuthentication.verificarToken,*/ (req, res)=>{
 // ====================================================== //
 // ================= Crear nuevo Alumno ================= //
 // ====================================================== //
-app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+app.post('/', mdAuthentication.verificarToken, (req, res)=>{
+	
 	var alumno = req.body.alumno;
+
+	var validaciones = userValidator.validarDatosDelUsuario( alumno, res);
+	
+	if ( validaciones != null ) {
+		return validaciones;
+	}
+	
 	alumno.matricula = alumno.matricula.toUpperCase();
 	alumno.correo = alumno.correo.toLowerCase();
+	alumno.grupo = alumno.grupo.toUpperCase();
 
-	if ( !userValidator.validarDominioDelCorreo( alumno.correo ) ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'El correo no pertenece a la Universidad Politécnica del Estado de Morelos.'
-		});
-	}
+	alumnosRef.where('matricula', '==', alumno.matricula).get().then( snapshot => {
 
-	if ( !userValidator.validarMatriculaYCorreo( alumno.matricula, alumno.correo ) ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'La matrícula y el correo no coinciden'
-		});
-	}
+		if ( !snapshot.empty ) {
+			return res.status(400).json({
+				ok: false,
+				message: 'Ya existe un alumno con la matricula ' + alumno.matricula
+			});
+		}
 
+		alumnosRef.doc(alumno.matricula).set(alumno).then( alumnoCreado => {
 	
+			var displayName = alumno.nombre + ' ' + alumno.apellidoP;
+			
 	
-
-	alumnosRef.doc(alumno.matricula).set(alumno).then( alumnoCreado => {
-
-		var displayName = alumno.nombre + ' ' + alumno.apellidoP;
-		
-		var customClaims = {
-			isAlumno: true,
-			isProfesor: false,
-			isAdmin: false,
-			isSuperadmin: false
-		};
-
-		authController.crearCuentaDeUsuario(alumno.correo, alumno.matricula, displayName).then( usuario => {
-			
-			console.log('Successfully created new user:', usuario.uid);
-			
-			authController.asignarRolAUsuario(usuario.uid, {customClaims}).then(()=>{
+			authController.crearCuentaDeUsuario(alumno.correo, alumno.matricula, displayName).then( usuario => {
 				
-				return res.status(201).json({
-					ok: true,
-					alumno: usuario
+				var customClaims = {
+					isAlumno: true,
+					isProfesor: false,
+					isAdmin: false,
+					isSuperadmin: false
+				};
+				
+				authController.asignarRolAUsuario(usuario.uid, {customClaims}).then(()=>{
+					
+					return res.status(201).json({
+						ok: true,
+						alumno: usuario
+					});
+					
+				}).catch( err => {
+					return res.status(500).json({
+						ok: true,
+						message: 'Error al asignar el rol de alumno',
+						error: err
+					});
 				});
 				
+			})  
+			.catch( err => {
+				return res.status(400).json({
+					ok: true,
+					message: 'El alumno se creó, pero ya existía una cuenta con su correo',
+					error: err
+				});
 			});
-			
-		})  
-		.catch( err => {
-			console.log('El alumno se creó, pero no su cuenta:', err);
+		}).catch( err => {
 			return res.status(500).json({
-				ok: true,
-				message: 'El alumno se creó, pero no su cuenta',
+				ok: false,
+				message: 'Error almacenando nuevo alumno',
 				error: err
 			});
 		});
-
-		
-		
-		
 	}).catch( err => {
 		return res.status(500).json({
 			ok: false,
-			message: 'Error almacenando nuevo alumno',
+			message: 'Error al verificar existencia',
 			error: err
 		});
 	});
+
+});
+
+
+// ========================================================== //
+// ================= Modificar nuevo Alumno ================= //
+// ========================================================== //
+app.put('/', mdAuthentication.verificarToken, (req, res)=>{
+	var alumno = req.body.alumno;
+	
+	var validaciones = userValidator.validarDatosDelUsuario( alumno, res);
+	
+	if ( validaciones != null ) {
+		return validaciones;
+	}
+	
+	var matricula = alumno.matricula.toUpperCase();
+	delete alumno.matricula;
+	alumno.correo = alumno.correo.toLowerCase();
+	alumno.grupo = alumno.grupo.toUpperCase();
+
+	alumnosRef.where('matricula', '==', matricula).get().then( snapshot => {
+
+		if ( snapshot.empty ) {
+			return res.status(400).json({
+				ok: false,
+				message: 'No existe el alumno con la matricula ' + matricula
+			});
+		}
+		
+		alumnosRef.doc(matricula).set(alumno, {merge: true}).then( alumnoCreado => {
+	
+			return res.status(201).json({
+				ok: true,
+				alumno: alumnoCreado
+			});
+			
+		}).catch( err => {
+			return res.status(500).json({
+				ok: false,
+				message: 'Error actualizando alumno',
+				error: err
+			});
+		});
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al verificar existencia',
+			error: err
+		});
+	});
+
 });
 
 
@@ -142,7 +238,7 @@ app.delete('/:matricula', (req, res) => {
 				authController.eliminarCuentaDeUsuario( usuario.uid ).then( () => {
 					return res.status(200).json({
 						ok: true,
-						message: 'Alumno eliminado satisfactoriamente'
+						message: `Alumno ${ alumnoDoc.data().nombre } eliminado satisfactoriamente`
 					});
 				}).catch( err => {
 					return res.status(500).json({
@@ -153,9 +249,9 @@ app.delete('/:matricula', (req, res) => {
 					});
 				});
 			}).catch( err => {
-				return res.status(400).json({
+				return res.status(200).json({
 					ok: false,
-					message: 'El registro del alumno de eliminó pero no se encontró la cuenta con matrícula ' + matricula,
+					message: 'El registro en la BD del alumno se eliminó pero, al parecer, el alumno no tenía ninguna cuenta vinculada para autenticarse',
 					error: err
 				});
 			});
