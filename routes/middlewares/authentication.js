@@ -11,14 +11,13 @@ exports.verificarToken = function verificarToken(req, res, next) {
 		next();
 		
 	})
-	.catch( err=>{
+	.catch( err => {
 		return res.status(401).json({
 			ok: false,
 			message: 'Token inválido',
 			errors: err
 		});
 	});
-	// auth.verifyIdToken();
 };
 
 

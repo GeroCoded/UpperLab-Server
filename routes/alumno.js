@@ -87,7 +87,7 @@ app.get('/:carrera/:grupo', mdAuthentication.verificarToken, (req, res)=>{
 // ====================================================== //
 // ================= Crear nuevo Alumno ================= //
 // ====================================================== //
-app.post('/', mdAuthentication.verificarToken, (req, res)=>{
+app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 	
 	var alumno = req.body.alumno;
 
@@ -190,6 +190,8 @@ app.put('/', mdAuthentication.verificarToken, (req, res)=>{
 				message: 'No existe el alumno con la matricula ' + matricula
 			});
 		}
+		
+		delete alumno.contrasena;
 		
 		alumnosRef.doc(matricula).set(alumno, {merge: true}).then( alumnoCreado => {
 	

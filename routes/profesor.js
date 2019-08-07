@@ -34,7 +34,6 @@ app.get('/:matricula', mdAuthentication.verificarToken, (req, res)=>{
 			ok: true,
 			profesor
 		});
-
 	})
 	.catch( err => {
 		return res.status(500).json({
@@ -172,7 +171,7 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 
 
 // ========================================================== //
-// ================= Modificar nuevo Profesor ================= //
+// ================= Modificar Profesor ================= //
 // ========================================================== //
 app.put('/', mdAuthentication.verificarToken, (req, res)=>{
 	var profesor = req.body.profesor;
@@ -195,6 +194,8 @@ app.put('/', mdAuthentication.verificarToken, (req, res)=>{
 				message: 'No existe el profesor con la matricula ' + matricula
 			});
 		}
+		
+		delete profesor.contrasena;
 		
 		profesoresRef.doc(matricula).set(profesor, {merge: true}).then( profesorCreado => {
 	
