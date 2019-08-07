@@ -24,7 +24,7 @@ app.get('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 		if ( snapshot.empty ) {
 			return res.status(200).json({
 				ok: false,
-				message: 'No hay ningún administrador registrado' + matricula,
+				message: 'No hay ningún administrador registrado',
 				admins
 			});
 		}
@@ -94,6 +94,14 @@ app.get('/:matricula',/* mdAuthentication.verificarToken,*/ (req, res)=>{
 // ====================================================== //
 app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 	
+		
+	if ( req.body.admin == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del administrador'
+		});
+	}
+
 	var admin = req.body.admin;
 
 	var validaciones = userValidator.validarDatosDelUsuario( admin, res);
@@ -116,7 +124,7 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 
 		admin.contrasena = admin.matricula;
 
-		adminsRef.doc(admin.matricula).set(admin).then( adminCreado => {
+		adminsRef.doc(admin.matricula).set(admin).then( () => {
 	
 			var displayName = admin.nombre + ' ' + admin.apellidoP;
 			
@@ -134,7 +142,7 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 					
 					return res.status(201).json({
 						ok: true,
-						admin: usuario
+						message: 'Administrador creado con éxito'
 					});
 					
 				}).catch( err => {
@@ -175,6 +183,14 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 // ================= Modificar Admin ================= //
 // ========================================================== //
 app.put('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+
+	if ( req.body.admin == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del administrador'
+		});
+	}
+	
 	var admin = req.body.admin;
 	
 	var validaciones = userValidator.validarDatosDelUsuario( admin, res);
@@ -198,11 +214,11 @@ app.put('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 		
 		delete admin.contrasena;
 
-		adminsRef.doc(matricula).set(admin, {merge: true}).then( adminCreado => {
+		adminsRef.doc(matricula).set(admin, {merge: true}).then( () => {
 	
 			return res.status(201).json({
 				ok: true,
-				admin: adminCreado
+				message: 'Administrador modificado con éxito'
 			});
 			
 		}).catch( err => {

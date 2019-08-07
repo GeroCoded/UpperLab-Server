@@ -89,6 +89,13 @@ app.get('/:carrera/:grupo', mdAuthentication.verificarToken, (req, res)=>{
 // ====================================================== //
 app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 	
+	if ( req.body.alumno == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del alumno'
+		});
+	}
+
 	var alumno = req.body.alumno;
 
 	var validaciones = userValidator.validarDatosDelUsuario( alumno, res);
@@ -110,7 +117,7 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 			});
 		}
 
-		alumnosRef.doc(alumno.matricula).set(alumno).then( alumnoCreado => {
+		alumnosRef.doc(alumno.matricula).set(alumno).then( () => {
 	
 			var displayName = alumno.nombre + ' ' + alumno.apellidoP;
 			
@@ -128,7 +135,7 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 					
 					return res.status(201).json({
 						ok: true,
-						alumno: usuario
+						message: 'Alumno creado con éxito'
 					});
 					
 				}).catch( err => {
@@ -166,9 +173,17 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 
 
 // ========================================================== //
-// ================= Modificar nuevo Alumno ================= //
+// ==================== Modificar Alumno ==================== //
 // ========================================================== //
 app.put('/', mdAuthentication.verificarToken, (req, res)=>{
+
+	if ( req.body.alumno == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del alumno'
+		});
+	}
+	
 	var alumno = req.body.alumno;
 	
 	var validaciones = userValidator.validarDatosDelUsuario( alumno, res);
@@ -193,11 +208,11 @@ app.put('/', mdAuthentication.verificarToken, (req, res)=>{
 		
 		delete alumno.contrasena;
 		
-		alumnosRef.doc(matricula).set(alumno, {merge: true}).then( alumnoCreado => {
+		alumnosRef.doc(matricula).set(alumno, {merge: true}).then( () => {
 	
 			return res.status(201).json({
 				ok: true,
-				alumno: alumnoCreado
+				message: 'Alumno modificado con éxito'
 			});
 			
 		}).catch( err => {

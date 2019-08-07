@@ -41,11 +41,17 @@ var loginRoutes = require('./routes/login');
 var alumnoRoutes = require('./routes/alumno');
 var profesorRoutes = require('./routes/profesor');
 var adminRoutes = require('./routes/admin');
+var superadminRoutes = require('./routes/superadmin');
+var laboratorioRoutes = require('./routes/laboratorio');
+var edificioRoutes = require('./routes/edificio');
 
 app.use('/login', loginRoutes);
 app.use('/alumno', alumnoRoutes);
 app.use('/profesor', profesorRoutes);
 app.use('/admin', adminRoutes);
+app.use('/superadmin', superadminRoutes);
+app.use('/laboratorio', laboratorioRoutes);
+app.use('/edificio', edificioRoutes);
 
 // Escuchar peticiones del express
 app.listen(3000, ()=>{

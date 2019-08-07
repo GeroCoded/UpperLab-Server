@@ -37,7 +37,7 @@ app.get('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 
 		return res.status(200).json({
 			ok: true,
-			admins: superadmins
+			superadmins
 		});
 	}).catch( err => {
 		return res.status(200).json({
@@ -52,16 +52,16 @@ app.get('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 
 
 
-// ====================================================== //
+// ========================================================== //
 // ============ Consultar superadmin por matrícula ========== //
-// ====================================================== //
+// ========================================================== //
 app.get('/:matricula',/* mdAuthentication.verificarToken,*/ (req, res)=>{
 	
 	var matricula = req.params.matricula.toUpperCase();
 
-	firestore.collection('admins').doc(matricula).get()
+	firestore.collection('superadmins').doc(matricula).get()
 	.then( superadminDoc => {
-
+	
 		if ( !superadminDoc.exists ) {
 			return res.status(200).json({
 				ok: false,
@@ -74,7 +74,7 @@ app.get('/:matricula',/* mdAuthentication.verificarToken,*/ (req, res)=>{
 
 		return res.status(200).json({
 			ok: true,
-			superadmin: superadmin
+			superadmin
 		});
 	})
 	.catch( err => {
@@ -93,6 +93,13 @@ app.get('/:matricula',/* mdAuthentication.verificarToken,*/ (req, res)=>{
 // ================= Crear nuevo Superadmin ================= //
 // ====================================================== //
 app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+	
+	if ( req.body.superadmin == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del Superadministrador'
+		});
+	}
 	
 	var superadmin = req.body.superadmin;
 
@@ -116,7 +123,7 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 
 		superadmin.contrasena = superadmin.matricula;
 
-		superadminsRef.doc(superadmin.matricula).set(superadmin).then( superadminCreado => {
+		superadminsRef.doc(superadmin.matricula).set(superadmin).then( () => {
 	
 			var displayName = superadmin.nombre + ' ' + superadmin.apellidoP;
 			
@@ -134,7 +141,7 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 					
 					return res.status(201).json({
 						ok: true,
-						superadmin: usuario
+						message: 'Superadministrador creado con éxito'
 					});
 					
 				}).catch( err => {
@@ -175,6 +182,14 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 // ================= Modificar Superadmin ================= //
 // ========================================================== //
 app.put('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+
+	if ( req.body.superadmin == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del Superadministrador'
+		});
+	}
+
 	var superadmin = req.body.superadmin;
 	
 	var validaciones = userValidator.validarDatosDelUsuario( superadmin, res);
@@ -198,11 +213,11 @@ app.put('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 		
 		delete superadmin.contrasena;
 
-		superadminsRef.doc(matricula).set(superadmin, {merge: true}).then( superadminCreado => {
+		superadminsRef.doc(matricula).set(superadmin, {merge: true}).then( () => {
 	
 			return res.status(201).json({
 				ok: true,
-				superadmin: superadminCreado
+				message: 'Superadministrador modificado con éxito'
 			});
 			
 		}).catch( err => {
@@ -231,9 +246,9 @@ app.delete('/:matricula', (req, res) => {
 	var matricula = req.params.matricula;
 	matricula = matricula.toUpperCase();
 
-	superadminsRef.doc(matricula).get().then( (adminDoc) => {
+	superadminsRef.doc(matricula).get().then( (superadminDoc) => {
 
-		if ( !adminDoc.exists ) {
+		if ( !superadminDoc.exists ) {
 			return res.status(400).json({
 				ok: false,
 				message: 'No se encontró al superadministrador con la matrícula ' + matricula
@@ -245,7 +260,7 @@ app.delete('/:matricula', (req, res) => {
 				authController.eliminarCuentaDeUsuario( usuario.uid ).then( () => {
 					return res.status(200).json({
 						ok: true,
-						message: `Superadmin ${ adminDoc.data().nombre } eliminado satisfactoriamente`
+						message: `Superadmin ${ superadminDoc.data().nombre } eliminado satisfactoriamente`
 					});
 				}).catch( err => {
 					return res.status(500).json({

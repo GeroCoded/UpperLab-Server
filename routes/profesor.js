@@ -95,6 +95,13 @@ app.get('/carrera/:carrera', mdAuthentication.verificarToken, (req, res)=>{
 // ====================================================== //
 app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 	
+	if ( req.body.profesor == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del profesor'
+		});
+	}
+
 	var profesor = req.body.profesor;
 
 	var validaciones = userValidator.validarDatosDelUsuario( profesor, res);
@@ -115,7 +122,7 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 			});
 		}
 
-		profesoresRef.doc(profesor.matricula).set(profesor).then( profesorCreado => {
+		profesoresRef.doc(profesor.matricula).set(profesor).then( () => {
 	
 			var displayName = profesor.nombre + ' ' + profesor.apellidoP;
 			
@@ -133,7 +140,7 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 					
 					return res.status(201).json({
 						ok: true,
-						profesor: usuario
+						message: 'Profesor creado con éxito'
 					});
 					
 				}).catch( err => {
@@ -174,6 +181,14 @@ app.post('/', mdAuthentication.verificarToken, (req, res)=>{
 // ================= Modificar Profesor ================= //
 // ========================================================== //
 app.put('/', mdAuthentication.verificarToken, (req, res)=>{
+	
+	if ( req.body.profesor == null) {
+		return res.status(400).json({
+			ok: false,
+			message: 'No se enviaron los datos del profesor'
+		});
+	}
+
 	var profesor = req.body.profesor;
 	
 	var validaciones = userValidator.validarDatosDelUsuario( profesor, res);
@@ -197,11 +212,11 @@ app.put('/', mdAuthentication.verificarToken, (req, res)=>{
 		
 		delete profesor.contrasena;
 		
-		profesoresRef.doc(matricula).set(profesor, {merge: true}).then( profesorCreado => {
+		profesoresRef.doc(matricula).set(profesor, {merge: true}).then( () => {
 	
 			return res.status(201).json({
 				ok: true,
-				profesor: profesorCreado
+				message: 'Profesor modificado con éxito'
 			});
 			
 		}).catch( err => {
