@@ -1,16 +1,14 @@
 
 var userValidator = require('../controllers/userValidator');
 
+class AdminModel {
 
-class AlumnoModel {
-
-	constructor( alumno ) {
-		this.matricula = alumno.matricula;
-		this.nombre = alumno.nombre;
-		this.apellidoP = alumno.apellidoP;
-		this.apellidoM = alumno.apellidoM;
-		this.correo = alumno.correo;
-		this.grupo = alumno.grupo;
+	constructor( admin ) {
+		this.matricula = admin.matricula;
+		this.nombre = admin.nombre;
+		this.apellidoP = admin.apellidoP;
+		this.apellidoM = admin.apellidoM;
+		this.correo = admin.correo;
 	}
 
 	validarDatos() {
@@ -20,8 +18,7 @@ class AlumnoModel {
 			this.nombre    == null || 
 			this.apellidoP == null || 
 			this.apellidoM == null || 
-			this.correo    == null || 
-			this.grupo     == null    )
+			this.correo    == null    )
 		{
 			return 1;
 		}
@@ -34,7 +31,6 @@ class AlumnoModel {
 	transformarDatos( ) {
 		this.matricula = this.matricula.toUpperCase();
 		this.correo = this.correo.toLowerCase();
-		this.grupo = this.grupo.toUpperCase();
 	}
 
 	toJson() {
@@ -44,7 +40,6 @@ class AlumnoModel {
 			apellidoP: 	this.apellidoP,
 			apellidoM: 	this.apellidoM,
 			correo	 : 	this.correo,
-			grupo	 : 	this.grupo
 		};
 	}
 
@@ -55,6 +50,7 @@ class AlumnoModel {
 		delete documentData.matricula;
 		delete documentData.correo;
 		
+		// Eliminar los campos que sean UNDEFINED
 		Object.keys(documentData).forEach(key => {
 			if (documentData[key] === undefined) {
 			  delete documentData[key];
@@ -66,4 +62,4 @@ class AlumnoModel {
 
 }
 
-module.exports = AlumnoModel;
+module.exports = AdminModel;

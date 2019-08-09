@@ -1,9 +1,10 @@
 
 var DOMINIO_CORREO = require('../config/config').DOMINIO_CORREO;
+var MENSAJES_DE_ERROR = require('../config/config').MENSAJES_DE_ERROR;
 
 exports.validarMatriculaYCorreo = function validarMatriculaYCorreo( matricula, correo ) {
 	var correoPartido = correo.split('@');
-	return matricula === correoPartido[0];
+	return matricula.toLowerCase() === correoPartido[0];
 };
 
 exports.validarDominioDelCorreo = function validarDominioDelCorreo( correo ) {
@@ -11,31 +12,16 @@ exports.validarDominioDelCorreo = function validarDominioDelCorreo( correo ) {
 	return '@'+correoPartido[1] === DOMINIO_CORREO;
 };
 
-exports.validarDatosDelUsuario = function validarDatosDelUsuario( usuario, res ) {
-
-	if ( usuario == null || usuario.matricula == null || usuario.correo == null ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'No se enviaron los datos completos.'
-		});
-	}
-
-	usuario.matricula = usuario.matricula.toLowerCase();
-	usuario.correo = usuario.correo.toLowerCase();
+exports.validarDatosDelUsuario = function validarDatosDelUsuario( usuario ) {
 
 	if ( !this.validarDominioDelCorreo( usuario.correo ) ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'El correo no pertenece a la Universidad Politécnica del Estado de Morelos.'
-		});
+		return 2;
 	}
 
 	if ( !this.validarMatriculaYCorreo( usuario.matricula, usuario.correo ) ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'La matrícula y el correo no coinciden'
-		});
+		return 3;
 	}
-	
+
+	return 0;
 };
 

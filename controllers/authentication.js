@@ -18,3 +18,12 @@ exports.eliminarCuentaDeUsuario = function eliminarCuentaDeUsuario( uid ) {
 exports.asignarRolAUsuario = function asignarRolAUsuario(uid, atributos) {
 	return auth.setCustomUserClaims(uid, atributos);
 };
+
+exports.existeCuenta = async function existeCuenta( matricula ) {
+
+	const usuario = await auth.getUserByEmail( matricula + DOMINIO_CORREO);
+	if ( usuario.uid == null ) {
+		return false;
+	}
+	return true;
+};

@@ -1,52 +1,23 @@
 var express = require('express');
 var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
-var authController = require('../controllers/authentication');
-var userValidator = require('../controllers/userValidator');
+
+var userCRUD = require('../controllers/userCRUD');
 
 var app = express();
 
+const COLECCION = 'admins';
+const USUARIO_SINGULAR = 'administrador';
+const USUARIO_PLURAL = 'administradores';
 
-
-const adminsRef = firestore.collection('admins');
 
 // ====================================================== //
 // ============== Consultar todos los admin ============= //
 // ====================================================== //
-app.get('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
+app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+
+	return userCRUD.obtenerTodosLosUsuarios(COLECCION, USUARIO_SINGULAR, res);
 	
-	var admins = [];
-
-	adminsRef.get().then( snapshot => {
-
-		
-
-		if ( snapshot.empty ) {
-			return res.status(200).json({
-				ok: false,
-				message: 'No hay ningún administrador registrado',
-				admins
-			});
-		}
-
-		snapshot.forEach( administrador => {
-			administrador = administrador.data();
-			delete administrador.contrasena;
-			admins.push( administrador );
-		});
-
-		return res.status(200).json({
-			ok: true,
-			admins
-		});
-	}).catch( err => {
-		return res.status(200).json({
-			ok: true,
-			message: 'Sin registros',
-			admins,
-			error: err
-		});
-	});
 });
 
 
@@ -55,11 +26,11 @@ app.get('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 // ====================================================== //
 // ============ Consultar admin por matrícula ========== //
 // ====================================================== //
-app.get('/:matricula',/* mdAuthentication.verificarToken,*/ (req, res)=>{
+app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var matricula = req.params.matricula.toUpperCase();
 
-	firestore.collection('admins').doc(matricula).get()
+	firestore.collection(COLECCION).doc(matricula).get()
 	.then( adminDoc => {
 
 		if ( !adminDoc.exists ) {
@@ -92,89 +63,9 @@ app.get('/:matricula',/* mdAuthentication.verificarToken,*/ (req, res)=>{
 // ====================================================== //
 // ================= Crear nuevo Admin ================= //
 // ====================================================== //
-app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
 	
-		
-	if ( req.body.admin == null) {
-		return res.status(400).json({
-			ok: false,
-			message: 'No se enviaron los datos del administrador'
-		});
-	}
-
-	var admin = req.body.admin;
-
-	var validaciones = userValidator.validarDatosDelUsuario( admin, res);
-	
-	if ( validaciones != null ) {
-		return validaciones;
-	}
-	
-	admin.matricula = admin.matricula.toUpperCase();
-	admin.correo = admin.correo.toLowerCase();
-
-	adminsRef.where('matricula', '==', admin.matricula).get().then( snapshot => {
-
-		if ( !snapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'Ya existe un administrador con la matricula ' + admin.matricula
-			});
-		}
-
-		admin.contrasena = admin.matricula;
-
-		adminsRef.doc(admin.matricula).set(admin).then( () => {
-	
-			var displayName = admin.nombre + ' ' + admin.apellidoP;
-			
-	
-			authController.crearCuentaDeUsuario(admin.correo, admin.matricula, displayName).then( usuario => {
-				
-				var customClaims = {
-					isAlumno: false,
-					isProfesor: false,
-					isAdmin: true,
-					isSuperadmin: false
-				};
-				
-				authController.asignarRolAUsuario(usuario.uid, {customClaims}).then(()=>{
-					
-					return res.status(201).json({
-						ok: true,
-						message: 'Administrador creado con éxito'
-					});
-					
-				}).catch( err => {
-					return res.status(500).json({
-						ok: true,
-						message: 'Error al asignar el rol de admin',
-						error: err
-					});
-				});
-				
-			})  
-			.catch( err => {
-				return res.status(400).json({
-					ok: true,
-					message: 'El admin se creó, pero ya existía una cuenta de autenticación con su correo',
-					error: err
-				});
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error almacenando nuevo admin',
-				error: err
-			});
-		});
-	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al verificar existencia',
-			error: err
-		});
-	});
+	return userCRUD.crearUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
 });
 
@@ -182,59 +73,9 @@ app.post('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 // ========================================================== //
 // ================= Modificar Admin ================= //
 // ========================================================== //
-app.put('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
-
-	if ( req.body.admin == null) {
-		return res.status(400).json({
-			ok: false,
-			message: 'No se enviaron los datos del administrador'
-		});
-	}
+app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 	
-	var admin = req.body.admin;
-	
-	var validaciones = userValidator.validarDatosDelUsuario( admin, res);
-	
-	if ( validaciones != null ) {
-		return validaciones;
-	}
-	
-	var matricula = admin.matricula.toUpperCase();
-	delete admin.matricula;
-	admin.correo = admin.correo.toLowerCase();
-
-	adminsRef.where('matricula', '==', matricula).get().then( snapshot => {
-
-		if ( snapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'No existe el admininistrador con la matricula ' + matricula
-			});
-		}
-		
-		delete admin.contrasena;
-
-		adminsRef.doc(matricula).set(admin, {merge: true}).then( () => {
-	
-			return res.status(201).json({
-				ok: true,
-				message: 'Administrador modificado con éxito'
-			});
-			
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error actualizando administrador',
-				error: err
-			});
-		});
-	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al verificar existencia del administrador',
-			error: err
-		});
-	});
+	return userCRUD.modificarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
 });
 
@@ -242,56 +83,10 @@ app.put('/', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 // ====================================================== //
 // =================== Eliminar Admin =================== //
 // ====================================================== //
-app.delete('/:matricula', (req, res) => {
+app.delete('/:matricula', mdAuthentication.esSuperadmin, (req, res) => {
 	
-	var matricula = req.params.matricula;
-	matricula = matricula.toUpperCase();
+	return userCRUD.eliminarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
-	adminsRef.doc(matricula).get().then( (adminDoc) => {
-
-		if ( !adminDoc.exists ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'No se encontró al admin con la matrícula ' + matricula
-			});
-		}
-
-		adminsRef.doc( matricula ).delete().then( () => {
-			authController.obtenerCuentaDeUsuarioPorCorreo( matricula ).then( usuario => {
-				authController.eliminarCuentaDeUsuario( usuario.uid ).then( () => {
-					return res.status(200).json({
-						ok: true,
-						message: `Admin ${ adminDoc.data().nombre } eliminado satisfactoriamente`
-					});
-				}).catch( err => {
-					return res.status(500).json({
-						ok: false,
-						message: 'Error al eliminar cuenta de autenticación de admin con matrícula ' + matricula,
-						error: err
-			
-					});
-				});
-			}).catch( err => {
-				return res.status(200).json({
-					ok: false,
-					message: 'El registro en la BD del admin se eliminó pero, al parecer, el admin no tenía ninguna cuenta vinculada para autenticarse',
-					error: err
-				});
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error al eliminar registro de admin con matrícula ' + matricula,
-				error: err
-			});
-		});
-	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al buscar admin con matrícula ' + matricula,
-			error: err
-		});
-	});
 });
 
 module.exports = app;

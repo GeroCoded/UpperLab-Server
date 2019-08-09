@@ -10,13 +10,13 @@ const laboratoriosRef = firestore.collection('laboratorios');
 // ====================================================== //
 // ========= Consultar laboratorio por edificio ========= //
 // ====================================================== //
-app.get('/edificio/:edificio', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+app.get('/edificio/:edificio', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var laboratorios = [];
 	
 	var edificio = req.params.edificio.toUpperCase();
 	
-	console.log(edificio);
+	// console.log(edificio);
 	laboratoriosRef.where('edificio', '==', edificio).get().then( (snapshot ) => {
 
 		if ( snapshot.empty ) {
@@ -49,7 +49,7 @@ app.get('/edificio/:edificio', /*mdAuthentication.verificarToken,*/ (req, res)=>
 // ====================================================== //
 // ======== Consultar laboratorio por abreviatura ======= //
 // ====================================================== //
-app.get('/:abreviatura', /*mdAuthentication.verificarToken,*/ (req, res)=>{
+app.get('/:abreviatura', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var laboratorio;
 	
@@ -88,12 +88,12 @@ app.get('/:abreviatura', /*mdAuthentication.verificarToken,*/ (req, res)=>{
 // ====================================================== //
 // ============== Crear nuevo Laboratorio =============== //
 // ====================================================== //
-app.post('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
+app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
 	
 	var laboratorio = new LaboratorioModel( req.body.laboratorio);
 
 	if ( !laboratorio.validarDatos(false) ) {
-		console.log('if');
+		// console.log('if');
 		return res.status(400).json({
 			ok: false,
 			message: 'No se enviaron todos los datos del laboratorio'
@@ -104,20 +104,27 @@ app.post('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 	
 	laboratoriosRef.where('abreviatura', '==', laboratorio.abreviatura).get().then( snapshot => {
 
-		console.log('Dentro del Where');
+		// console.log('Dentro del Where');
 		if ( !snapshot.empty ) {
-			console.log('Dentro del Empty');
+			// console.log('Dentro del Empty');
 			return res.status(400).json({
 				ok: false,
 				message: 'Ya existe un laboratorio con la abreviatura ' + laboratorio.abreviatura
 			});
 		}
 
-		console.log(laboratorio.toJson());
+		// var documentData = laboratorio.toJson();
+		
+		// // Elimina los campos que son NULL, '', UNDEFINED
+		// Object.keys(documentData).forEach(key => {
+		// 	if (!documentData[key]) {
+		// 	  delete documentData[key];
+		// 	}
+		// });
 
 		console.log('Antes del add()');
 		laboratoriosRef.add(laboratorio.toJson()).then( laboratorioCreado => {
-			console.log('Dentro del Add');
+			// console.log('Dentro del Add');
 			return res.status(201).json({
 				ok: true,
 				message: 'Laboratorio creado con éxito.',
@@ -147,7 +154,7 @@ app.post('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 // ========================================================== //
 // ================= Modificar Laboratorio ================== //
 // ========================================================== //
-app.put('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
+app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 
 	var laboratorio = new LaboratorioModel( req.body.laboratorio );
 
@@ -160,16 +167,16 @@ app.put('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 
 	laboratorio.transformarDatos();
 
-	console.log(laboratorio);
-	console.log('json...');
-	console.log(laboratorio.toJson());
+	// console.log(laboratorio);
+	// console.log('json...');
+	// console.log(laboratorio.toJson());
 	
 	// Verificar que sí exista el laboratorio que se modificará
 	laboratoriosRef.where('abreviatura', '==', laboratorio.abreviaturaVieja).get().then( laboratoriosSnapshotUno => {
 
-		console.log('Dentro del Where');
+		// console.log('Dentro del Where');
 		if ( laboratoriosSnapshotUno.empty ) {
-			console.log('Dentro del Empty');
+			// console.log('Dentro del Empty');
 			return res.status(400).json({
 				ok: false,
 				message: 'No se encontró ningún laboratorio con la abreviatura ' + laboratorio.abreviaturaVieja
@@ -177,7 +184,7 @@ app.put('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 		}
 		
 		if ( laboratoriosSnapshotUno.docs.length > 1 ) {
-			console.log('Dentro del length');
+			// console.log('Dentro del length');
 			return res.status(400).json({
 				ok: false,
 				message: 'Al parecer hay más de 1 laboratorio con la misma abreviatura (' + abreviaturaVieja + '). No se modificó ningún laboratorio',
@@ -188,34 +195,34 @@ app.put('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 		// Verificar que no haya otro laboratorio con la nueva abreviatura
 
 		if ( laboratorio.abreviatura != laboratorio.abreviaturaVieja ) {
-			console.log(this.laboratorio);
+			// console.log(this.laboratorio);
 			laboratoriosRef.where('abreviatura', '==', laboratorio.abreviatura).get().then( laboratoriosSnapshotDos => {
 
-				console.log('Dentro del Where');
+				// console.log('Dentro del Where');
 				var batch = firestore.batch();
 				
 				if ( !laboratoriosSnapshotDos.empty ) {
-					console.log('Dentro del Empty');
+					// console.log('Dentro del Empty');
 					return res.status(400).json({
 						ok: false,
 						message: 'Ya existe un laboratorio con la abreviatura ' + laboratorio.abreviatura
 					});
 				}
 
-				console.log('snapshotDos length: ' + laboratoriosSnapshotDos.docs.length);
-				console.log(laboratorio.toJson());
+				// console.log('snapshotDos length: ' + laboratoriosSnapshotDos.docs.length);
+				// console.log(laboratorio.toJson());
 
 				laboratoriosSnapshotUno.forEach( (labDos) => {
-					console.log('Dentro del Foreach');
+					// console.log('Dentro del Foreach');
 					// For each lab, add a delete operation to the batch
 					batch.update(labDos.ref, laboratorio.toJson());
 				});
 
 
-				console.log('Antes del commit');
+				// console.log('Antes del commit');
 				// Commit the batch
 				return batch.commit().then( () =>{ 
-					console.log('Dentro del Commit');
+					// console.log('Dentro del Commit');
 					return res.status(200).json({
 						ok: true,
 						message: 'Laboratorio modificado con éxito'
@@ -240,16 +247,16 @@ app.put('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 			var batch = firestore.batch();
 
 			laboratoriosSnapshotUno.forEach(function(lab) {
-				console.log('Dentro del Foreach');
+				// console.log('Dentro del Foreach');
 				// For each lab, add a delete operation to the batch
 				batch.update(lab.ref, laboratorio.toJson());
 			});
 
 
-			console.log('Antes del commit');
+			// console.log('Antes del commit');
 			// Commit the batch
 			return batch.commit().then( () =>{ 
-				console.log('Dentro del Commit');
+				// console.log('Dentro del Commit');
 				return res.status(200).json({
 					ok: true,
 					message: 'Laboratorio modificado con éxito'
@@ -281,7 +288,7 @@ app.put('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
 // ====================================================== //
 // ================= Eliminar Laboratorio =============== //
 // ====================================================== //
-app.delete('/:abreviatura', (req, res) => {
+app.delete('/:abreviatura', mdAuthentication.esSuperadmin, (req, res) => {
 	
 	var abreviatura = req.params.abreviatura.toUpperCase();
 
@@ -332,10 +339,6 @@ app.delete('/:abreviatura', (req, res) => {
 
 	
 });
-
-
-
-
 
 
 module.exports = app;

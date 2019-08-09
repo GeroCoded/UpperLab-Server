@@ -44,6 +44,7 @@ var adminRoutes = require('./routes/admin');
 var superadminRoutes = require('./routes/superadmin');
 var laboratorioRoutes = require('./routes/laboratorio');
 var edificioRoutes = require('./routes/edificio');
+var pruebaRoutes = require('./routes/prueba');
 
 app.use('/login', loginRoutes);
 app.use('/alumno', alumnoRoutes);
@@ -52,6 +53,7 @@ app.use('/admin', adminRoutes);
 app.use('/superadmin', superadminRoutes);
 app.use('/laboratorio', laboratorioRoutes);
 app.use('/edificio', edificioRoutes);
+app.use('/prueba', pruebaRoutes);
 
 // Escuchar peticiones del express
 app.listen(3000, ()=>{

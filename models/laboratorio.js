@@ -38,15 +38,6 @@ class LaboratorioModel {
 		};
 	}
 
-	// set nombre( nombre ) { this.nombre = nombre; }
-	// get nombre() { return this.nombre; }
-
-	// set abreviatura( abreviatura ) { this.abreviatura = abreviatura; }
-	// get abreviatura() { return this.abreviatura; }
-	
-	// set edificio( edificio ) { this.edificio = edificio; }
-	// get edificio() { return this.edificio; }
-
 }
 
 module.exports = LaboratorioModel;

@@ -1,16 +1,14 @@
 
 var userValidator = require('../controllers/userValidator');
 
+class SuperadminModel {
 
-class AlumnoModel {
-
-	constructor( alumno ) {
-		this.matricula = alumno.matricula;
-		this.nombre = alumno.nombre;
-		this.apellidoP = alumno.apellidoP;
-		this.apellidoM = alumno.apellidoM;
-		this.correo = alumno.correo;
-		this.grupo = alumno.grupo;
+	constructor( superadmin ) {
+		this.matricula = superadmin.matricula;
+		this.nombre = superadmin.nombre;
+		this.apellidoP = superadmin.apellidoP;
+		this.apellidoM = superadmin.apellidoM;
+		this.correo = superadmin.correo;
 	}
 
 	validarDatos() {
@@ -20,8 +18,7 @@ class AlumnoModel {
 			this.nombre    == null || 
 			this.apellidoP == null || 
 			this.apellidoM == null || 
-			this.correo    == null || 
-			this.grupo     == null    )
+			this.correo    == null    )
 		{
 			return 1;
 		}
@@ -34,7 +31,6 @@ class AlumnoModel {
 	transformarDatos( ) {
 		this.matricula = this.matricula.toUpperCase();
 		this.correo = this.correo.toLowerCase();
-		this.grupo = this.grupo.toUpperCase();
 	}
 
 	toJson() {
@@ -44,7 +40,6 @@ class AlumnoModel {
 			apellidoP: 	this.apellidoP,
 			apellidoM: 	this.apellidoM,
 			correo	 : 	this.correo,
-			grupo	 : 	this.grupo
 		};
 	}
 
@@ -66,4 +61,4 @@ class AlumnoModel {
 
 }
 
-module.exports = AlumnoModel;
+module.exports = SuperadminModel;
