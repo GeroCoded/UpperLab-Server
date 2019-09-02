@@ -48,7 +48,7 @@ app.get('/sinHorario', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // ================= Crear nueva Clase ================== //
 // ====================================================== //
-app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
+app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var clase = new ClaseModel( req.body.clase);
 	
@@ -98,7 +98,7 @@ app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
 // ====================================================== //
 // =================== Modificar Clase ================== //
 // ====================================================== //
-app.put('/', (req, res) => {
+app.put('/', mdAuthentication.esAdminOSuper, (req, res) => {
 	
 	var clase = new ClaseModel( req.body.clase );
 
@@ -135,7 +135,7 @@ app.put('/', (req, res) => {
 // ====================================================== //
 // ================ Eliminar Clase por ID =============== //
 // ====================================================== //
-app.delete('/:claseID', mdAuthentication.esSuperadmin, (req, res) => {
+app.delete('/:claseID', mdAuthentication.esAdminOSuper, (req, res) => {
 	
 	var claseID = req.params.claseID.toUpperCase();
 

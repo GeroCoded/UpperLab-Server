@@ -30,7 +30,6 @@ function getMateriasPorCarrera( claveCarrera ) {
 	
 	return new Promise( (resolve) => {
 		
-		// TODO: Cambiar la colección de 'materias' a 'cuatrimestres'.
 		carrerasRef.doc(claveCarrera).collection('cuatrimestres').get().then( (querySnapshot ) => {
 
 			if ( querySnapshot.empty ) {
@@ -77,7 +76,6 @@ function getMateriasPorCarreraYCuatri( claveCarrera, cuatrimestreID ) {
 	
 	return new Promise( (resolve) => {
 		
-		// TODO: Cambiar la colección de 'materias' a 'cuatrimestres'.
 		carrerasRef.doc(claveCarrera).collection('cuatrimestres').doc(cuatrimestreID).get().then(  (documentSnapshot) => {
 
 			if ( !documentSnapshot.exists ) {
