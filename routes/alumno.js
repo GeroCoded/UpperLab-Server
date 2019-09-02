@@ -1,13 +1,10 @@
 var express = require('express');
-
 var firestore = require('firebase-admin').firestore();
 
 var mdAuthentication = require('./middlewares/authentication');
 var userCRUD = require('../controllers/userCRUD');
 
 var app = express();
-
-// De 292 líneas a 119 líneas
 
 const COLECCION = 'alumnos';
 const USUARIO_SINGULAR = 'alumno';
@@ -51,11 +48,11 @@ app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // ======= Consultar alumnos por grupo (y carrera) ====== //
 // ====================================================== //
-app.get('/:carrera/:grupo', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/:generacion/:carrera/:grupo', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
-	var carrera_grupo = req.params.carrera + '-' + req.params.grupo;
+	var gen_carrera_grupo = req.params.generacion + '-' + req.params.carrera + '-' + req.params.grupo;
 
-	alumnosRef.where('grupo', '==', carrera_grupo).get()
+	alumnosRef.where('grupo', '==', gen_carrera_grupo).get()
 	.then( snapshot => {
 
 		var alumnos = [];
@@ -63,7 +60,7 @@ app.get('/:carrera/:grupo', mdAuthentication.esAdminOSuper, (req, res)=>{
 		if ( snapshot.empty ) {
 			return res.status(200).json({
 				ok: true,
-				message: 'No existe ningún alumno en el grupo de ' + carrera_grupo,
+				message: 'No existe ningún alumno en el grupo de ' + gen_carrera_grupo,
 				alumnos
 			});
 		}
@@ -95,10 +92,19 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 });
 
+// ====================================================== //
+// ======== Creación múltiple de Alumnos (Excel) ======== //
+// ====================================================== //
+app.post('/multiple', mdAuthentication.esAdminOSuper, (req, res)=>{
 
-// ========================================================== //
-// ==================== Modificar Alumno ==================== //
-// ========================================================== //
+	return userCRUD.crearMultiplesUsuarios( COLECCION, USUARIO_SINGULAR, req, res);
+
+});
+
+
+// ====================================================== //
+// ================== Modificar Alumno ================== //
+// ====================================================== //
 app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	return userCRUD.modificarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
@@ -114,5 +120,6 @@ app.delete('/:matricula', mdAuthentication.esAdminOSuper, (req, res) => {
 	return userCRUD.eliminarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
 });
+
 
 module.exports = app;

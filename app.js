@@ -1,6 +1,10 @@
 // Requires
 var express = require('express');
 
+var fileUpload = require('express-fileupload');
+
+
+
 var bodyParser = require('body-parser');
 
 // FIREBASE ADMIN SDK
@@ -18,6 +22,9 @@ admin.initializeApp({
 // Inicializar variables
 var app = express();
 
+
+// Middleware de express-fileupload
+app.use(fileUpload());
 
 // 
 app.use(function(req, res, next) {
@@ -43,8 +50,10 @@ var profesorRoutes = require('./routes/profesor');
 var adminRoutes = require('./routes/admin');
 var superadminRoutes = require('./routes/superadmin');
 var laboratorioRoutes = require('./routes/laboratorio');
+var claseRoutes = require('./routes/clase');
 var edificioRoutes = require('./routes/edificio');
-var pruebaRoutes = require('./routes/prueba');
+var carreraRoutes = require('./routes/carrera');
+var descargasRoutes = require('./routes/descargas');
 
 app.use('/login', loginRoutes);
 app.use('/alumno', alumnoRoutes);
@@ -52,8 +61,10 @@ app.use('/profesor', profesorRoutes);
 app.use('/admin', adminRoutes);
 app.use('/superadmin', superadminRoutes);
 app.use('/laboratorio', laboratorioRoutes);
+app.use('/clase', claseRoutes);
 app.use('/edificio', edificioRoutes);
-app.use('/prueba', pruebaRoutes);
+app.use('/carrera', carreraRoutes);
+app.use('/descargas', descargasRoutes);
 
 // Escuchar peticiones del express
 app.listen(3000, ()=>{

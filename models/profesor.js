@@ -1,6 +1,7 @@
 
 var userValidator = require('../controllers/userValidator');
 
+
 class ProfesorModel {
 
 	constructor( profesor ) {
@@ -9,7 +10,22 @@ class ProfesorModel {
 		this.apellidoP = profesor.apellidoP;
 		this.apellidoM = profesor.apellidoM;
 		this.correo = profesor.correo;
-		this.carreras = profesor.carreras;
+		
+		// DATOS DE PRUEBA
+		if ( !profesor.carreras ) {
+			this.carreras = {
+				IIF: true,
+				ITI: true,
+				IET: false
+			};
+		} else {
+			this.carreras = profesor.carreras;
+		}
+
+		this.customClaims = null;
+		this.errores = [];
+		this.warning = [];
+
 	}
 
 	validarDatos() {
@@ -60,6 +76,20 @@ class ProfesorModel {
 
 		return documentData;
 	}
+
+	toJsonExcel() {
+		return {
+			matricula: 	this.matricula,
+			nombre	 : 	this.nombre,
+			apellidoP: 	this.apellidoP,
+			apellidoM: 	this.apellidoM,
+			correo	 : 	this.correo,
+			// customClaims	 : 	this.customClaims,
+			errores	 : 	this.errores,
+			warning	 : 	this.warning
+		};
+	}
+
 
 }
 

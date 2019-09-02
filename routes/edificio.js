@@ -8,9 +8,9 @@ var app = express();
 const edificiosRef = firestore.collection('edificios');
 
 // ====================================================== //
-// ============== Consultar todos los admin ============= //
+// ============ Consultar todos los edificios =========== //
 // ====================================================== //
-app.get('/'/*, mdAuthentication.verificarToken*/, (req, res)=>{
+app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var edificios = [];
 

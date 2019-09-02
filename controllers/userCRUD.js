@@ -1,8 +1,11 @@
 
 var firestore = require('firebase-admin').firestore();
+
+var ServerResponse = require('http').ServerResponse;
 // var auth = require('firebase-admin').auth();
 
 var authController = require('../controllers/authentication');
+var archivosController = require('../controllers/archivos');
 
 var AlumnoModel = require('../models/alumno');
 var ProfesorModel = require('../models/profesor');
@@ -165,7 +168,158 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 
 
 
+exports.crearMultiplesUsuarios = function crearMultiplesUsuarios( coleccion, usuarioSingular, req, res){
 
+	// Obtención del archivo excel subido por el administrador
+	var excel = archivosController.obtenerArchivoExcel(req, res);
+
+	if ( excel instanceof ServerResponse ) {
+		return excel;
+	}
+
+	// Validación de los registros del archivo Excel
+	var usuariosData = archivosController.validarUsuariosDeExcel( excel, usuarioSingular, res );
+
+	if ( usuariosData instanceof ServerResponse ) {
+		return usuariosData;
+	}
+
+	// console.log(usuariosData);
+
+	var promesas = [];
+
+	// Pushear promesas al arreglo.
+	usuariosData.forEach( usuario => {
+		promesas.push( validarUsuario(coleccion, usuario) );
+	});
+
+	// Ejecutar todas las promesas, es decir, Validar todos los usuarios al mismo tiempo.
+	Promise.all( promesas ).then( (respuestas) => {
+		// console.log(' OOOOOOOOOOO  ========== Respuestas buenas =========== OOOOOOOOOO');
+		// console.log(respuestas);
+		// console.log(' XXXXXXXXXXX  ============ USUARIOSDATA ============== XXXXXXXXXX');
+		// console.log(usuariosData);
+		
+		return res.status(200).json({
+			ok: true,
+			respuestas
+		});
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			// usuariosData,
+			error: err
+		});
+	});
+	
+};
+
+
+function validarUsuario(coleccion, usuario) {
+
+	return new Promise( async (resolve, reject) => {
+		try {
+
+			console.log('usuario.errores.length > 0  (1)');
+			if ( usuarioTieneErrores(usuario) ) {
+				return resolve(usuario.toJsonExcel());
+			}
+
+			console.log('verificarExistencia');
+			await verificarExistencia(coleccion, usuario);
+
+			console.log('usuario.errores.length > 0  (2)');
+			if ( usuarioTieneErrores(usuario) ) {
+				return resolve(usuario.toJsonExcel());
+			}
+
+			console.log('crearRegistro');
+			await crearRegistro(coleccion, usuario);
+			
+			console.log('usuario.errores.length > 0  (3)');
+			if ( usuarioTieneErrores(usuario) ) {
+				return resolve(usuario.toJsonExcel());
+			}
+
+			console.log('crearCuentaDeUsuario');
+			var cuentaDeUsuario = await crearCuentaDeUsuario(usuario);
+
+			if ( usuarioTieneErrores(usuario) ) {
+				return resolve(usuario.toJsonExcel());
+			}
+			console.log('asignarRolAUsuario');
+			await asignarRolAUsuario(usuario, cuentaDeUsuario);
+
+			console.log('Finalizando...');
+			return resolve(usuario.toJsonExcel());
+			
+			
+		} catch( err ) {
+			console.log('Error... ', err);
+			return reject(err);
+		}
+	});
+}
+
+function usuarioTieneErrores( usuario ) {
+	if ( usuario.errores.length > 0  || usuario.warning.length > 0 ) {
+		return true;
+	}
+	return false;
+}
+
+
+function verificarExistencia( coleccion, usuario ) {
+
+	return new Promise( (resolve, reject) => {
+		firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
+			
+			if ( !querySnapshot.empty ) {
+				usuario.errores.push('Ya existe la matrícula');
+			}
+			return resolve();
+
+		}).catch( err => {
+			usuario.errores.push('Error al verificar existencia: ' + err);
+			return resolve(err);
+		});
+	});
+	
+}
+
+function crearRegistro( coleccion, usuario ) {
+	return new Promise( (resolve, reject) => {
+		firestore.collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() ).then( () => {
+			return resolve();
+		}).catch( err => {
+			usuario.errores.push('Error al almacenar registro');
+			return resolve(err);
+		});
+	});
+}
+
+function crearCuentaDeUsuario( usuario ) {
+	return new Promise( (resolve, reject) => {
+		var displayName = usuario.nombre + ' ' + usuario.apellidoP;
+		authController.crearCuentaDeUsuario(usuario.correo, usuario.matricula, displayName).then( (cuentaDeUsuario) => {
+			return resolve(cuentaDeUsuario);
+		}).catch( err => {
+			usuario.warning.push( `Ya existía una cuenta de autenticación con ese correo ${ err }` );
+			return resolve(err);
+		});
+	});
+}
+
+function asignarRolAUsuario( usuario, cuentaDeUsuario ) {
+	return new Promise( (resolve, reject) => {
+		authController.asignarRolAUsuario(cuentaDeUsuario.uid, usuario.customClaims).then( () => { 
+			return resolve();
+		}).catch( err => {
+			usuario.errores.push(`Error al asignar el rol`);
+			return resolve(err);
+		});
+	});
+}
 
 
 

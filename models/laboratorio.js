@@ -3,24 +3,24 @@ class LaboratorioModel {
 
 	constructor( laboratorio ) {
 		this.nombre = laboratorio.nombre;
-		this.abreviatura = laboratorio.abreviatura;
-		this.abreviaturaVieja = laboratorio.abreviaturaVieja;
+		this.clave = laboratorio.clave;
+		this.claveVieja = laboratorio.claveVieja;
 		this.edificio = laboratorio.edificio;
 		this.encargados = laboratorio.encargados;
 	}
 
 	validarDatos() {
 
-		if ( this.nombre == null  || this.abreviatura == null || this.edificio == null){
+		if ( this.nombre == null  || this.clave == null || this.edificio == null){
 			return false;
 		}
 		return true;
 	}
 
 	transformarDatos( esModificacion ) {
-		this.abreviatura = this.abreviatura.toUpperCase();
+		this.clave = this.clave.toUpperCase();
 		if ( esModificacion ) {
-			this.abreviaturaVieja = this.abreviaturaVieja.toUpperCase();
+			this.claveVieja = this.claveVieja.toUpperCase();
 		}
 		
 		if ( this.encargados !== null && this.encargados.length === 1 && this.encargados[0] === '') {
@@ -32,7 +32,7 @@ class LaboratorioModel {
 	toJson() {
 		return {
 			nombre: this.nombre,
-			abreviatura: this.abreviatura,
+			clave: this.clave,
 			edificio: this.edificio,
 			encargados: this.encargados
 		};

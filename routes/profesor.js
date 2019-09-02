@@ -50,7 +50,7 @@ app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 
 // ====================================================== //
-// ======= Consultar profesores por carrera ====== //
+// ========== Consultar profesores por carrera ========== //
 // ====================================================== //
 app.get('/carrera/:carrera', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
@@ -92,20 +92,45 @@ app.get('/carrera/:carrera', mdAuthentication.esAdminOSuper, (req, res)=>{
 });
 
 
+
+
 // ====================================================== //
-// ================= Crear nuevo Profesor ================= //
+// ========== Consultar todos los profesores ============ //
 // ====================================================== //
-app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+
+	return userCRUD.obtenerTodosLosUsuarios(COLECCION, USUARIO_SINGULAR, res);
+
+});
+
+
+
+
+// ====================================================== //
+// ================ Crear nuevo Profesor ================ //
+// ====================================================== //
+app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
 
 	return userCRUD.crearUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
 });
 
 
-// ========================================================== //
+// ====================================================== //
+// ======= Creación múltiple de Profesores (Excel) ====== //
+// ====================================================== //
+app.post('/multiple', mdAuthentication.esAdminOSuper, (req, res)=>{
+
+	return userCRUD.crearMultiplesUsuarios( COLECCION, USUARIO_SINGULAR, req, res);
+
+});
+
+
+
+// ====================================================== //
 // ================= Modificar Profesor ================= //
-// ========================================================== //
-app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+// ====================================================== //
+app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 
 	return userCRUD.modificarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
@@ -115,7 +140,7 @@ app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // =================== Eliminar Profesor ================== //
 // ====================================================== //
-app.delete('/:matricula', mdAuthentication.esAdminOSuper, (req, res) => {
+app.delete('/:matricula', mdAuthentication.esSuperadmin, (req, res) => {
 
 	return userCRUD.eliminarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 

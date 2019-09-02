@@ -4,13 +4,22 @@ var userValidator = require('../controllers/userValidator');
 
 class AlumnoModel {
 
-	constructor( alumno ) {
+	constructor( alumno, desdeExcel ) {
 		this.matricula = alumno.matricula;
 		this.nombre = alumno.nombre;
 		this.apellidoP = alumno.apellidoP;
 		this.apellidoM = alumno.apellidoM;
 		this.correo = alumno.correo;
-		this.grupo = alumno.grupo;
+		
+		if ( desdeExcel ) {
+			this.grupo = alumno.generacion + '-' + alumno.carrera +'-' + alumno.grupo;
+		} else {
+			this.grupo = alumno.grupo;
+		}
+
+		this.customClaims = null;
+		this.errores = [];
+		this.warning = [];
 	}
 
 	validarDatos() {
@@ -62,6 +71,20 @@ class AlumnoModel {
 		});
 
 		return documentData;
+	}
+
+	toJsonExcel() {
+		return {
+			matricula: 	this.matricula,
+			nombre	 : 	this.nombre,
+			apellidoP: 	this.apellidoP,
+			apellidoM: 	this.apellidoM,
+			correo	 : 	this.correo,
+			grupo	 : 	this.grupo,
+			// customClaims	 : 	this.customClaims,
+			errores	 : 	this.errores,
+			warning	 : 	this.warning
+		};
 	}
 
 }
