@@ -8,11 +8,54 @@ var app = express();
 const clasesRef = firestore.collection('clases');
 
 // ====================================================== //
+// === Consultar Lista de Clases por Carrera y Cuatri === //
+// ====================================================== //
+app.get('/lista/:carrera/:cuatrimestre', mdAuthentication.esAdminOSuper, (req, res)=>{
+	
+	var clases = [];
+
+	var carrera = req.params.carrera;
+	var cuatrimestre = req.params.cuatrimestre;
+
+	console.log(carrera);
+	console.log(cuatrimestre);
+
+	clasesRef.where('carrera', '==', carrera).where('cuatrimestre', '==', cuatrimestre).get().then( querySnapshot => {
+
+		if ( querySnapshot.empty ) { 
+			return res.status(200).json({
+				ok: false,
+				message: 'No hay clases en ' + carrera + ' ' + cuatrimestre
+			});
+		}
+
+		
+
+		querySnapshot.forEach( queryDocumentSnapshot => {
+			clases.push( queryDocumentSnapshot.data() );
+		});
+
+		return res.status(200).json({
+			ok: true,
+			clases
+		});
+		
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al buscar clases',
+			error: err
+		});
+	});
+		
+});
+
+// ====================================================== //
 // ======== Consultar Clase sin Horario asignado ======== //
 // ====================================================== //
 app.get('/sinHorario', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
-	let clases = [];
+	var clases = [];
 
 	clasesRef.where('horario', '==', null).get().then( querySnapshot => {
 
@@ -44,6 +87,46 @@ app.get('/sinHorario', mdAuthentication.esAdminOSuper, (req, res)=>{
 		
 });
 
+
+// ====================================================== //
+// === Consultar Clase con Horario y Labs. asignados ==== //
+// ====================================================== //
+app.get('/conHorario/:laboratorio', mdAuthentication.esAdminOSuper, (req, res)=>{
+	
+	let clases = [];
+
+	let laboratorio = req.params.laboratorio;
+	laboratorio = laboratorio.toUpperCase();
+
+	clasesRef.where('laboratorios', 'array-contains', laboratorio)/*.where('horario.setteado', '==', true)*/.get().then( querySnapshot => {
+
+		if ( querySnapshot.empty ) { 
+			return res.status(200).json({
+				ok: false,
+				message: 'No hay clases con horarios'
+			});
+		}
+
+		
+
+		querySnapshot.forEach( queryDocumentSnapshot => {
+			clases.push( queryDocumentSnapshot.data() );
+		});
+
+		return res.status(200).json({
+			ok: true,
+			clases
+		});
+		
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al buscar clases',
+			error: err
+		});
+	});
+		
+});
 
 // ====================================================== //
 // ================= Crear nueva Clase ================== //
@@ -183,8 +266,48 @@ app.delete('/:claseID', mdAuthentication.esAdminOSuper, (req, res) => {
 			error: err
 		});
 	});
-
-	
 });
+
+
+// ====================================================== //
+// ============ Establecer Horarios de Clases =========== //
+// ====================================================== //
+app.post('/horarios', mdAuthentication.esAdminOSuper, (req, res)=>{
+	
+	var clases = [];
+
+	req.body.clases.forEach(clase => {
+		clases.push( new ClaseModel(clase) );
+	});
+	
+	console.log(clases);
+
+	var batch = firestore.batch();
+	var claseRef;
+
+	clases.forEach(clase => {
+		// if ( clase.horario ) {
+		// 	clase.horario.setteado = true;
+		// }
+		claseRef = firestore.collection('clases').doc(clase.claseID);
+		batch.update( claseRef, {horario: clase.horario, laboratorios: clase.laboratorios} );
+	});
+
+	batch.commit().then( () => {
+
+		return res.status(200).json({
+			ok: true,
+			message: 'Horario actualizado con éxito'
+		})
+	}).catch( err => {
+
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al actualizar horario',
+			error: err
+		})
+	});
+});
+
 
 module.exports = app;

@@ -16,7 +16,7 @@ exports.getResponse = function getResponse( code, ok, message, objeto, error ) {
 
 	if ( objeto ) {
 		var keyName = Object.keys( objeto )[0];
-		console.log(keyName);
+		// console.log(keyName);
 		objetoResponse.response[keyName] = objeto[keyName];
 	}
 
