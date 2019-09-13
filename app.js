@@ -56,6 +56,7 @@ var carreraRoutes = require('./routes/carrera');
 var descargasRoutes = require('./routes/descargas');
 var equipoRoutes = require('./routes/equipo');
 var componenteRoutes = require('./routes/componente');
+var plantillaRoutes = require('./routes/plantilla');
 
 app.use('/login', loginRoutes);
 app.use('/alumno', alumnoRoutes);
@@ -69,6 +70,7 @@ app.use('/carrera', carreraRoutes);
 app.use('/descargas', descargasRoutes);
 app.use('/componente', componenteRoutes);
 app.use('/equipo', equipoRoutes);
+app.use('/plantilla', plantillaRoutes);
 
 // Escuchar peticiones del express
 app.listen(3000, ()=>{
