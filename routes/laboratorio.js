@@ -25,7 +25,7 @@ app.get('/edificio/:edificio',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 
 
 // ====================================================== //
-// ======== Consultar laboratorio por clave ======= //
+// =========== Consultar laboratorio por clave ========== //
 // ====================================================== //
 app.get('/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 	

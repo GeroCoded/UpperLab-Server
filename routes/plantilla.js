@@ -12,10 +12,10 @@ const plantillasRef = firestore.collection('plantillas');
 // ====================================================== //
 // ============ OBTENER PLANTILLAS POR TIPO ============= //
 // ====================================================== //
-app.post('/:tipo', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/:tipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	var tipo = req.params.tipo;
-	var plantilas = [];
+	var plantillas = [];
 		
 	plantillasRef.where('tipo', '==', tipo).get().then( querySnapshot => {
 
@@ -27,8 +27,11 @@ app.post('/:tipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 			});
 		}
 
+		var i = 0;
 		querySnapshot.forEach( plantilla => {
-			plantilas.push( plantilla.data() );
+			plantillas.push( plantilla.data() );
+			plantillas[i].id = plantilla.id;
+			i++;
 		});
 
 		return res.status(200).json({
@@ -38,7 +41,10 @@ app.post('/:tipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	}).catch( err => {
 		console.log(err);
-		return reject( err );
+		return res.status(500).json({
+			ok: false,
+			plantillas
+		});
 	});
 });
 
@@ -65,6 +71,30 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 		});
 	});
 });
+
+
+
+// ====================================================== //
+// ================== ELIMINAR PLANTILLA ================ //
+// ====================================================== //
+app.delete('/:id', mdAuthentication.esAdminOSuper, (req, res) => {
+	var id = req.params.id;
+
+	plantillasRef.doc(id).delete().then( () => {
+
+		return res.status(200).json({
+			ok: true,
+			message: 'Plantilla eliminada'
+		});
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			error: err
+		});
+	});
+});
+
+
 
 
 

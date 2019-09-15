@@ -73,6 +73,6 @@ app.use('/equipo', equipoRoutes);
 app.use('/plantilla', plantillaRoutes);
 
 // Escuchar peticiones del express
-app.listen(3000, ()=>{
+app.listen(3000, '0.0.0.0', ()=>{
 	console.log('Express server puerto 3000: \x1b[32m%s\x1b[0m', 'online');
 });

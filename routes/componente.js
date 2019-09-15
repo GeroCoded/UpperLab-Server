@@ -26,7 +26,7 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	promesa.then( respuestas => {
 
-		console.log( respuestas );
+		// console.log( respuestas );
 
 		var componentes = {
 			tarjetasMadre: 	 respuestas[0],
@@ -149,12 +149,12 @@ app.delete('/:id', mdAuthentication.esAdminOSuper, (req, res) => {
 		return res.status(200).json({
 			ok: true,
 			message: 'Componente eliminado'
-		})
+		});
 	}).catch( err => {
 		return res.status(500).json({
 			ok: false,
 			error: err
-		})
+		});
 	});
 });
 
