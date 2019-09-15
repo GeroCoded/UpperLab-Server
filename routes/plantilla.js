@@ -73,6 +73,52 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 });
 
 
+// ====================================================== //
+// ================= MODIFICAR PLANTILLA ================ //
+// ====================================================== //
+app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+
+	var plantilla = req.body.plantilla;
+	var id = plantilla.id;
+
+	plantillasRef.doc( id ).set( plantilla, { merge: true } ).then( () => {
+		return res.status(200).json({
+			ok: true
+		});
+	}).catch( err => {
+		console.log(err);
+		return res.status(500).json({
+			ok: false,
+			error: err
+		});
+	});
+});
+
+
+
+// ====================================================== //
+// ================== ELIMINAR PLANTILLA ================ //
+// ====================================================== //
+app.delete('/:id', mdAuthentication.esAdminOSuper, (req, res) => {
+	var id = req.params.id;
+
+	plantillasRef.doc(id).delete().then( () => {
+
+		return res.status(200).json({
+			ok: true,
+			message: 'Plantilla eliminada'
+		});
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			error: err
+		});
+	});
+});
+
+
+
+
 
 // ====================================================== //
 // ================== ELIMINAR PLANTILLA ================ //
