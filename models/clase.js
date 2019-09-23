@@ -16,6 +16,7 @@ class ClaseModel {
 		this.dias = clase.dias;
 		this.configuracion = clase.configuracion;
 		this.horario = clase.horario;
+		this.alumnos = clase.alumnos;
 	}
 
 	validarDatos() {
@@ -29,6 +30,7 @@ class ClaseModel {
 			this.materiaID 	  == null ||
 			this.materia 	  == null ||
 			this.profesorID   == null ||
+			this.alumnos	  == null ||
 			this.profesor 	  == null   ){
 			return false;
 		}
@@ -56,7 +58,8 @@ class ClaseModel {
 			profesorID		: this.profesorID,
 			profesor		: this.profesor,
 			configuracion	: this.configuracion,
-			horario	: this.horario
+			horario			: this.horario,
+			alumnos			: this.alumnos
 		};
 	}
 

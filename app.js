@@ -3,8 +3,6 @@ var express = require('express');
 
 var fileUpload = require('express-fileupload');
 
-
-
 var bodyParser = require('body-parser');
 
 // FIREBASE ADMIN SDK
@@ -54,6 +52,7 @@ var claseRoutes = require('./routes/clase');
 var edificioRoutes = require('./routes/edificio');
 var carreraRoutes = require('./routes/carrera');
 var descargasRoutes = require('./routes/descargas');
+var asistenciasRoutes = require('./routes/asistencia');
 var equipoRoutes = require('./routes/equipo');
 var componenteRoutes = require('./routes/componente');
 var plantillaRoutes = require('./routes/plantilla');
@@ -68,6 +67,7 @@ app.use('/clase', claseRoutes);
 app.use('/edificio', edificioRoutes);
 app.use('/carrera', carreraRoutes);
 app.use('/descargas', descargasRoutes);
+app.use('/asistencia', asistenciasRoutes);
 app.use('/componente', componenteRoutes);
 app.use('/equipo', equipoRoutes);
 app.use('/plantilla', plantillaRoutes);

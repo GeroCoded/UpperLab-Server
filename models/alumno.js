@@ -10,6 +10,12 @@ class AlumnoModel {
 		this.apellidoP = alumno.apellidoP;
 		this.apellidoM = alumno.apellidoM;
 		this.correo = alumno.correo;
+
+		if ( alumno.asistencias ) {
+			this.asistencias = alumno.asistencias;
+		} else {
+			this.asistencias = {};
+		}
 		
 		if ( desdeExcel ) {
 			this.grupo = alumno.generacion + '-' + alumno.carrera +'-' + alumno.grupo;
@@ -48,12 +54,13 @@ class AlumnoModel {
 
 	toJson() {
 		return {
-			matricula: 	this.matricula,
-			nombre	 : 	this.nombre,
-			apellidoP: 	this.apellidoP,
-			apellidoM: 	this.apellidoM,
-			correo	 : 	this.correo,
-			grupo	 : 	this.grupo
+			matricula  : 	this.matricula,
+			nombre	   : 	this.nombre,
+			apellidoP  : 	this.apellidoP,
+			apellidoM  : 	this.apellidoM,
+			correo	   : 	this.correo,
+			grupo	   : 	this.grupo,
+			asistencias:    this.asistencias
 		};
 	}
 
