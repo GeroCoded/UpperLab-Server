@@ -25,7 +25,7 @@ app.get('/edificio/:edificio',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 
 
 // ====================================================== //
-// ======== Consultar laboratorio por clave ======= //
+// =========== Consultar laboratorio por clave ========== //
 // ====================================================== //
 app.get('/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
@@ -56,11 +56,13 @@ function getLaboratoriosPorCampo( campo, valor, masculino ) {
 			}
 			
 			var laboratorios = [];
+			var i = 0;
 
 			snapshot.forEach( querySnapshot => {
 				// laboratorios = querySnapshot.data();
 				laboratorios.push(querySnapshot.data());
-
+				laboratorios[i].id = querySnapshot.id;
+				i++;
 			});
 	
 			objetoRespuesta = resgen.getResponse(200, true, null, {laboratorios}, null);
