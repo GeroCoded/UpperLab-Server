@@ -56,11 +56,13 @@ function getLaboratoriosPorCampo( campo, valor, masculino ) {
 			}
 			
 			var laboratorios = [];
+			var i = 0;
 
 			snapshot.forEach( querySnapshot => {
 				// laboratorios = querySnapshot.data();
 				laboratorios.push(querySnapshot.data());
-
+				laboratorios[i].id = querySnapshot.id;
+				i++;
 			});
 	
 			objetoRespuesta = resgen.getResponse(200, true, null, {laboratorios}, null);

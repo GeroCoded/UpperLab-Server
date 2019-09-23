@@ -10,22 +10,22 @@ const clasesRef = firestore.collection('clases');
 // ====================================================== //
 // === Consultar Lista de Clases por Carrera y Cuatri === //
 // ====================================================== //
-app.get('/lista/:carrera/:cuatrimestre', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/lista/:carreraID/:cuatrimestre', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var clases = [];
 
-	var carrera = req.params.carrera;
+	var carreraID = req.params.carreraID;
 	var cuatrimestre = req.params.cuatrimestre;
 
-	console.log(carrera);
+	console.log(carreraID);
 	console.log(cuatrimestre);
 
-	clasesRef.where('carrera', '==', carrera).where('cuatrimestre', '==', cuatrimestre).get().then( querySnapshot => {
+	clasesRef.where('carreraID', '==', carreraID).where('cuatrimestre', '==', cuatrimestre).get().then( querySnapshot => {
 
 		if ( querySnapshot.empty ) { 
 			return res.status(200).json({
 				ok: false,
-				message: 'No hay clases en ' + carrera + ' ' + cuatrimestre
+				message: 'No hay clases en ' + carreraID + ' ' + cuatrimestre
 			});
 		}
 
@@ -98,7 +98,7 @@ app.get('/conHorario/:laboratorio', mdAuthentication.esAdminOSuper, (req, res)=>
 	let laboratorio = req.params.laboratorio;
 	laboratorio = laboratorio.toUpperCase();
 
-	clasesRef.where('laboratorios', 'array-contains', laboratorio)/*.where('horario.setteado', '==', true)*/.get().then( querySnapshot => {
+	clasesRef.where('laboratorios', 'array-contains', laboratorio).get().then( querySnapshot => {
 
 		if ( querySnapshot.empty ) { 
 			return res.status(200).json({

@@ -370,7 +370,7 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 		}
 		
 		documentData = usuario.toJsonModified();
-
+		console.log(documentData);
 		firestore.collection( coleccion ).doc( usuario.matricula ).set( documentData, {merge: true} ).then( () => {
 	
 			return res.status(201).json({
