@@ -7,6 +7,10 @@ class LaboratorioModel {
 		this.claveVieja = laboratorio.claveVieja;
 		this.edificio = laboratorio.edificio;
 		this.encargados = laboratorio.encargados;
+		this.numEquipos = laboratorio.numEquipos;
+		this.ultimoNumEquipo = laboratorio.ultimoNumEquipo;
+		this.nIncidencias = laboratorio.nIncidencias;
+		this.nIncidenciasUrgentes = laboratorio.nIncidenciasUrgentes;
 	}
 
 	validarDatos() {
@@ -18,6 +22,7 @@ class LaboratorioModel {
 	}
 
 	transformarDatos( esModificacion ) {
+
 		this.clave = this.clave.toUpperCase();
 		if ( esModificacion ) {
 			this.claveVieja = this.claveVieja.toUpperCase();
@@ -34,7 +39,10 @@ class LaboratorioModel {
 			nombre: this.nombre,
 			clave: this.clave,
 			edificio: this.edificio,
-			encargados: this.encargados
+			encargados: this.encargados,
+			numEquipos: this.numEquipos,
+			nIncidencias: this.nIncidencias,
+			nIncidenciasUrgentes: this.nIncidenciasUrgentes
 		};
 	}
 

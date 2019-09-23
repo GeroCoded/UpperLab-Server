@@ -41,7 +41,7 @@ class ClaseModel {
 		this.claseID = this.claseID.toUpperCase();
 		this.grupoID = this.grupoID.toUpperCase();
 		this.carreraID = this.carreraID.toUpperCase();
-		this.cuatrimestre = this.carreraID.toUpperCase();
+		this.cuatrimestre = this.cuatrimestre;
 		this.materiaID = this.materiaID.toUpperCase();
 		this.profesorID = this.profesorID.toUpperCase();
 	}
