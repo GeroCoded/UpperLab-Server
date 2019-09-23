@@ -309,5 +309,18 @@ app.post('/horarios', mdAuthentication.esAdminOSuper, (req, res)=>{
 	});
 });
 
+// ====================================================== //
+// === Obtener una clase mediante horario especifico ==== //
+// ====================================================== //
+app.post('/', mdAuthentication.esAlumno, (req, res)=>{
+	var matricula = req.body.matricula;
+	var codigoQRcodificado = req.body.codigoQR;
+	
+	var CodigoQR = new CodigoQRModel(matricula, codigoQRcodificado);
+	
+	
+
+
+});
 
 module.exports = app;
