@@ -34,7 +34,7 @@ exports.asignarRolAUsuario = function asignarRolAUsuario(uid, atributos) {
 exports.existeCuenta = async function existeCuenta( matricula ) {
 
 	const usuario = await auth.getUserByEmail( matricula + DOMINIO_CORREO);
-	if ( usuario.uid == null ) {
+	if ( usuario.uid === null ) {
 		return false;
 	}
 	return true;

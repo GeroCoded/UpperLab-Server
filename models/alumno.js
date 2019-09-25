@@ -31,12 +31,12 @@ class AlumnoModel {
 	validarDatos() {
 
 		if (
-			this.matricula == null || 
-			this.nombre    == null || 
-			this.apellidoP == null || 
-			this.apellidoM == null || 
-			this.correo    == null || 
-			this.grupo     == null    )
+			this.matricula === null || 
+			this.nombre    === null || 
+			this.apellidoP === null || 
+			this.apellidoM === null || 
+			this.correo    === null || 
+			this.grupo     === null    )
 		{
 			return 1;
 		}

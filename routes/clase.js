@@ -1,6 +1,8 @@
 var express = require('express');
 var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
+var ObjetoResponse = require('../models/objetoResponse');
+var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
 var ClaseModel = require('../models/clase');
 
 var app = express();
@@ -132,46 +134,45 @@ app.get('/conHorario/:laboratorio', mdAuthentication.esAdminOSuper, (req, res)=>
 // ================= Crear nueva Clase ================== //
 // ====================================================== //
 app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+
+	var objetoResponse = new ObjetoResponse( 500, false, 'Internal Server Error', null, null );
 	
 	var clase = new ClaseModel( req.body.clase);
 	
 	if ( !clase.validarDatos() ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'No se enviaron todos los datos de la clase'
-		});
+		objetoResponse = new ObjetoResponse(400, false, 'No se enviaron todos los datos de la clase', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	}
 
 	clase.transformarDatos();
 
+	objetoResponse.message = 'Error al consultar clase ' + clase.claseID;
+
 	clasesRef.doc(clase.claseID).get().then( documentSnapshot => {
 
 		if ( documentSnapshot.exists ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'La clase ' + clase.claseID + ' ya existe'
-			});
+			objetoResponse = new ObjetoResponse( 400, false, 'La clase ' + clase.claseID + ' ya existe', null, null );
+			throw new Error(BREAK_MESSAGE);
 		}
+
+		objetoResponse.message = 'Error al crear la clase ' + clase.claseID;
 	
-		clasesRef.doc(clase.claseID).set( clase.toJson() ).then( () => {
-			return res.status(200).json({
-				ok: true,
-				message: 'Se ha creado la clase con éxito'
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error almacenando clase nueva',
-				error: err
-			});
-		});
+		return clasesRef.doc(clase.claseID).set( clase.toJson() );
+		
+	}).then( () => {
+		
+		objetoResponse = new ObjetoResponse( 200, true, 'Se ha creado la clase con éxito', null, null );
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error verificando la existencia de la clase',
-			error: err
-		});
+
+		if ( err.message !== BREAK_MESSAGE ) {
+			objetoResponse.error = err;
+			console.log(err);
+			console.log(objetoResponse.response);
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
 });
 
@@ -220,51 +221,48 @@ app.put('/', mdAuthentication.esAdminOSuper, (req, res) => {
 // ====================================================== //
 app.delete('/:claseID', mdAuthentication.esAdminOSuper, (req, res) => {
 	
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+	
 	var claseID = req.params.claseID.toUpperCase();
 
+	objetoResponse.message = 'Error al buscar clase con el ID ' + claseID;
 	clasesRef.where('claseID', '==', claseID).get().then( (clasesSnapshot) => {
 
 		var batch = firestore.batch();
 
 		if ( clasesSnapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'No se encontró ninguna clase con el ID ' + claseID,
-			});
+			var objetoResponse = new ObjetoResponse(400, false, 'No se encontró ninguna clase con el ID ' + claseID, null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
 		if ( clasesSnapshot.docs.length > 1 ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'Al parecer hay más de 1 clase con el mismo ID (' + claseID + '). No se eliminó ninguna clase. Favor de pedirle ayuda al desarrollador.',
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'Al parecer hay más de 1 clase con el mismo ID (' + claseID + '). No se eliminó ninguna clase. Favor de pedirle ayuda al desarrollador.', null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
-		clasesSnapshot.forEach(function(clase) {
+		clasesSnapshot.forEach( clase => {
             // For each class, add a delete operation to the batch
 			batch.delete(clase.ref);
         });
 		
-        // Commit the batch
-		return batch.commit().then( () =>{ 
-			return res.status(200).json({
-				ok: true,
-				message: 'Clase eliminada con éxito'
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error al eliminar clase con el ID ' + claseID,
-				error: err
-			});
-		});
+		// Commit the batch
+		objetoResponse.message = 'Error al eliminar clase con el ID ' + claseID;
+		return batch.commit();
+
+	}).then( () =>{ 
+
+		objetoResponse = new ObjetoResponse(200, true, 'Clase eliminada con éxito', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al buscar clase con el ID ' + claseID,
-			error: err
-		});
+
+		if ( err.message !== BREAK_MESSAGE ) {
+			objetoResponse.error = err;
+			console.log(err);
+			console.log(objetoResponse.response);
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
 });
 
@@ -286,9 +284,6 @@ app.post('/horarios', mdAuthentication.esAdminOSuper, (req, res)=>{
 	var claseRef;
 
 	clases.forEach(clase => {
-		// if ( clase.horario ) {
-		// 	clase.horario.setteado = true;
-		// }
 		claseRef = firestore.collection('clases').doc(clase.claseID);
 		batch.update( claseRef, {horario: clase.horario, laboratorios: clase.laboratorios} );
 	});
@@ -309,18 +304,5 @@ app.post('/horarios', mdAuthentication.esAdminOSuper, (req, res)=>{
 	});
 });
 
-// ====================================================== //
-// === Obtener una clase mediante horario especifico ==== //
-// ====================================================== //
-app.post('/', mdAuthentication.esAlumno, (req, res)=>{
-	var matricula = req.body.matricula;
-	var codigoQRcodificado = req.body.codigoQR;
-	
-	var CodigoQR = new CodigoQRModel(matricula, codigoQRcodificado);
-	
-	
-
-
-});
 
 module.exports = app;

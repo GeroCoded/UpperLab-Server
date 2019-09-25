@@ -132,7 +132,7 @@ exports.validarUsuariosDeExcel = function validarUsuariosDeExcel( excel, usuario
 
 		var numDeError = usuario.validarDatos();
 	
-		if ( numDeError != 0 ) {
+		if ( numDeError !== 0 ) {
 			console.log('Error con registro [' + (index+1) + ']');
 			usuario.errores.push( MENSAJES_DE_ERROR[numDeError] );
 		}

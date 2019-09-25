@@ -6,3 +6,5 @@ module.exports.MENSAJES_DE_ERROR = {
 	2: 'El correo no pertenece a la Universidad Politécnica del Estado de Morelos.',
 	3: 'La matrícula y el correo no coinciden'
 };
+
+module.exports.BREAK_MESSAGE = 'BREAK';

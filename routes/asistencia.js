@@ -1,8 +1,11 @@
 var express = require('express');
-var functions = requiere('firebase-functions');
 var firestore = require('firebase-admin').firestore();
 var crypto = require('crypto');
 var mdAuthentication = require('./middlewares/authentication');
+var ObjetoResponse = require('../models/objetoResponse');
+var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
+
+// Modelos
 var CodigoQRModel = require('../models/codigoQRModel');
 var ClaseModel = require ('./../models/clase');
 var AlumnoModel = require ('./../models/alumno');
@@ -12,27 +15,14 @@ var app = express();
 
 const clasesRef = firestore.collection('clases');
 
-/**
-* Función para generar respuestas HTTP dinámicas.
-* 
-* @param code El 'status code' de la repuesta. (e.g. 200, 201, 400, 500)
-* @param ok Booleano que dice si salió bien o no la petición.
-* @param message Mensaje que podría usarse para mostrarse en el GUI para
-* explicarle al usuario.
-* @param objeto El objeto que se regresará con la respuesta.
-* @param error En caso de que haya salido mal una operación, el error que se
-* mostrará. (Usualmente es el error del catch)
-* @return Un objeto con las 2 siguientes propiedades: 
-* `[objeto.code]`: Sirve para obtener el 'status code',
-* `[objeto.response]`: Aquí se encuentra toda la respuesta que usualmente se
-* envía dentro de la función .json(). El uso final quedaría así:
-* `return res.status(objeto.code).json(objeto.response);`
-*/
 
 // ====================================================== //
 // =========== Consultar Clase por horario ============== //
 // ====================================================== //
-app.post('/', /* mdAuthentication.esAlumno, */ (req, res)=>{
+app.post('/', mdAuthentication.esAlumno, (req, res)=>{
+
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+	
 	var fecha = new Date;
 	var dia = fecha.getDay();
 	var mes = fecha.getMonth();
@@ -76,9 +66,9 @@ app.post('/', /* mdAuthentication.esAlumno, */ (req, res)=>{
 	console.log(key);
 	console.log(iv);
 
-	var objeto = new CodigoQRModel(matricula, codigoQR, key, iv);
+	var codigoQRModel = new CodigoQRModel(matricula, codigoQR, key, iv);
 	
-	cadena = objeto.decodificarCodigoQR(codigoQR, key, iv);
+	cadena = codigoQRModel.decodificarCodigoQR(codigoQR, key, iv);
 	
 	console.log('La cadena descifrada es: ');
 	console.log(cadena);
@@ -106,109 +96,97 @@ app.post('/', /* mdAuthentication.esAlumno, */ (req, res)=>{
 	
 	// console.log('La hora es: ' + hora);
 	
-	//Consultar clase
+	objetoResponse.message = 'Error al consultar las clases de hoy';
+	
+	// Consultar las clases de hoy que aún no terminan
 	clasesRef.where('horario.'+ dia + '-' + laboratorio + '.horaFinal', '>', hora).get().then( querySnapshot => {
 		
 		if ( querySnapshot.empty ) {
 			// Respuesta de que no hay ninguna clase actualmente.
-			return res.status(200).json({
-				ok: false,
-				message: 'No hay clase',
-				hora: hora
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'No hay clase actualmente.', {hora}, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 		
-		// Clases obtenidas del día
-		var claseI;
-		var claseActual;
+		
+		var claseI; // Clase en la interación I
+		var claseActual; // Clase que se está impartiendo "Ahora".
+
+		// Recorrer las clases obtenidas.
 		querySnapshot.forEach( clase => {
 			claseI = new ClaseModel( clase.data() );
-			// console.log( claseI );
 
+			// Checar si hay una clase a "esta" hora.
 			if ( claseI.horario[diaLaboratorio].horaInicial <= hora && claseI.horario[diaLaboratorio].horaFinal > hora ) {
+				// Se guarda esa clase.
 				claseActual = new ClaseModel( clase.data() );
 			}
-			
 		});
 		
-		if ( claseActual == null ) {
-			// Respuesta de que no existe ninguna clase actualmente.
-			return res.status(200).json({
-				ok: false,
-				message: 'No existe ninguna clase actualmente',
-				hora: hora
-			});
+		if ( claseActual === null ) {
+			// Respuesta de que no hay ninguna clase actualmente.
+			objetoResponse = new ObjetoResponse(400, false, 'No hay clase actualmente.', {hora}, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 		
 		console.log('La clase actual es: ' + claseActual.claseID);
 
-		var i;
-		for(i=0; i > claseActual.alumnos.length ; i++){
-			if( !claseActual.alumnos[i].includes(matricula) ){
-				return res.status(200).json({
-					ok: true,
-					message: 'El alumno no pertenece a la clase',
-					claseActual
-				});
+
+		for(var i=0; i < claseActual.alumnos.length ; i++) {
+			if( !claseActual.alumnos[i].includes(matricula) ) {
+				objetoResponse = new ObjetoResponse(400, false, 'No perteneces a la clase actual', null, null);
+				throw new Error(BREAK_MESSAGE);
 			}
 		}
 
 		//Verificación de la asístencia diaria
-		firestore.collection('alumnos').doc(matricula).get().then( alumnoDoc => {
-			var alumno = new AlumnoModel( alumnoDoc.data() );
-			if(alumno.asistencias[claseActual.claseID]){
-				// Recorrer arreglo
-				for(var i=0; i < alumno.asistencias[claseActual.claseID].length; i ++){
-					var fecha = alumno.asistencias[claseAcutal.claseID][i].split(':')[0];
-					if ( fecha === fechaActual) {
-						return res.status(200).json({
-							ok: false,
-							message: 'ERROR: Ya se registro la asistencia'					
-						});
-					}else{
-						console.log('No hay asistencia Registrada');
-					}
+		objetoResponse.message = 'Error al buscar los datos del alumno';
+		return firestore.collection('alumnos').doc(matricula).get();
+
+	}).then( alumnoDoc => {
+
+		var alumno = new AlumnoModel( alumnoDoc.data() );
+
+		if(alumno.asistencias[claseActual.claseID]) {
+			// Recorrer arreglo de las asistencias del alumno en la clase actual.
+			for(var i=0; i < alumno.asistencias[claseActual.claseID].length; i ++) {
+				var fecha = alumno.asistencias[claseAcutal.claseID][i].split(':')[0];
+				if ( fecha === fechaActual) {
+					objetoResponse = new ObjetoResponse(200, true, 'Ya se registró la asistencia', null, null);
+					throw new Error(BREAK_MESSAGE);
 				}
-			} else {
-				alumno.asistencias[claseActual.claseID] = [];
+				// Else: No ha registrado asistencia previamente el día de hoy en esta clase.
 			}
-			
-			var marcaAsistencia = asistenciaCompleta(fechaActual, minutos);
-			alumno.asistencias[claseActual.claseID].push(marcaAsistencia);
-			
-			//Ver el objeto para ver si se añadió la marcaAsistencia
-			console.log(alumno.toJsonModified());
-
-			// Actualizar documento ALUMNOS
-			firestore.collection('alumnos').doc(matricula).update(alumno.toJsonModified(), {merge: true}).then( function() {
-				return res.status(200).json({
-					ok: true,
-					message: 'El alumno se actualizo correctamente'
-				});
-			}).catch( function(err) {
-				return res.status(200).json({
-					ok: false,
-					message: 'NO se actualizo la matricula ' + matricula
-				});
-			});
-			
-			console.log(marcaAsistencia);
-
-		}).catch( err => {
-			return res.status(200).json({
-				ok: false,
-				message: 'Ya se ha marcado la asistencia',
-				error: err
-			});			
-		});
+		} else {
+			alumno.asistencias[claseActual.claseID] = [];
+		}
 		
-	}).catch (err =>{
-		console.log(err);
-		return res.status(500).json({
-			ok: false,
-			error: 'La consulta de la clase tiene un error'
-		})
+		var marcaAsistencia = asistenciaCompleta(fechaActual, minutos);
+		alumno.asistencias[claseActual.claseID].push(marcaAsistencia);
+		
+		//Ver el objeto para ver si se añadió la marcaAsistencia
+		console.log(alumno.toJsonModified());
+
+		// Actualizar documento ALUMNOS
+		objetoResponse.message = 'Error al actualizar la asistencia';
+		return firestore.collection('alumnos').doc(matricula).update(alumno.toJsonModified(), {merge: true});
+
+	}).then( () => {
+
+		
+		objetoResponse = new ObjetoResponse(200, true, 'El alumno se actualizo correctamente', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
+	}).catch( err => {
+		
+		if ( err.message !== BREAK_MESSAGE ) {
+			objetoResponse.error = err;
+			console.log(err);
+			console.log(objetoResponse.response);
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
+	
 });
 
 
@@ -216,41 +194,37 @@ app.post('/', /* mdAuthentication.esAlumno, */ (req, res)=>{
 // ====== Función para regresar el nombre del día ======= //
 // ====================================================== //
 
-function diaEsp(day){
-	var dia = String;
-	if(day == 1){
-		return dia = 'lunes';
-	}else if(day == 2){
-		return dia = 'martes'
-	}else if(day == 3){
-		return dia = 'miercoles'
-	}else if(day == 4){
-		return dia = 'jueves'
-	}else if(day == 5){
-		return dia == 'viernes'
-	}else if(day == 6){
-		return dia = 'sabado'
-	}else{
-		return dia = 'domingo'
-	}
-};
+function diaEsp(day) {
 
-function asistenciaCompleta(fechaActual, minutos){
-	if(minutos > 10 && minutos < 15){
+	if(day === 1) {
+		return 'lunes';
+	}else if(day === 2) {
+		return 'martes';
+	}else if(day === 3) {
+		return 'miercoles';
+	}else if(day === 4) {
+		return 'jueves';
+	}else if(day === 5) {
+		return 'viernes';
+	}else if(day === 6) {
+		return 'sabado';
+	}else{
+		return 'domingo';
+	}
+}
+
+function asistenciaCompleta(fechaActual, minutos) {
+	if(minutos > 10 && minutos < 15) {
 		console.log('Marca Asistencia: ' + fechaActual + ':R');
 		return fechaActual + ':R';
-	} else if ( minutos > 15){
+	} else if ( minutos > 15) {
 		console.log('Marca Asistencia: ' + fechaActual + ':F');
 		return fechaActual + ':F';
 	}else{
 		console.log('Marca Asistencia: ' + fechaActual + ':A');
 		return fechaActual + ':A';
 	}
-};
-
-exports.helloWorld = functions.https.onRequest((request, response) => {
- response.send("Hola desde asistencisas Firebase!");
-});
+}
 
 
 module.exports = app;

@@ -1,7 +1,8 @@
 var express = require('express');
 var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
-var resgen = require('../controllers/responseGenerator');
+var ObjetoResponse = require('../models/objetoResponse');
+var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
 var LaboratorioModel = require('../models/laboratorio');
 
 var app = express();
@@ -15,10 +16,10 @@ app.get('/edificio/:edificio',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 	
 	var edificio = req.params.edificio.toUpperCase();
 
-	getLaboratoriosPorCampo( 'edificio', edificio, true ).then( objetoRespuesta => {
-		return res.status(objetoRespuesta.code).json(objetoRespuesta.response);
-	}).catch( objetoRespuesta => {
-		return res.status(objetoRespuesta.code).json(objetoRespuesta.response);
+	getLaboratoriosPorCampo( 'edificio', edificio, true ).then( objetoResponse => {
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+	}).catch( objetoResponse => {
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	});
 		
 });
@@ -31,10 +32,10 @@ app.get('/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var clave = req.params.clave.toUpperCase();
 
-	getLaboratoriosPorCampo( 'clave', clave, false ).then( objetoRespuesta => {
-		return res.status(objetoRespuesta.code).json(objetoRespuesta.response);
-	}).catch( objetoRespuesta => {
-		return res.status(objetoRespuesta.code).json(objetoRespuesta.response);
+	getLaboratoriosPorCampo( 'clave', clave, false ).then( objetoResponse => {
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+	}).catch( objetoResponse => {
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	});
 	
 });
@@ -42,17 +43,14 @@ app.get('/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 function getLaboratoriosPorCampo( campo, valor, masculino ) {
 
-	var objetoRespuesta;
-
 	return new Promise( (resolve, reject) => {
 		laboratoriosRef.where(campo, '==', valor).get().then( snapshot => {
 
 			if ( snapshot.empty ) {
 				var message = `No existe ningún laboratorio con ${ (masculino ? ' el ' : ' la ') } ${campo} ${valor}`;
-				// message += (masculino ? ' el ' : ' la ') + campo + ' ' + valor;
 				
-				objetoRespuesta = resgen.getResponse(200, false, message, null, null);
-				return resolve(objetoRespuesta);
+				
+				return resolve( new ObjetoResponse(200, false, message, null, null) );
 			}
 			
 			var laboratorios = [];
@@ -65,17 +63,10 @@ function getLaboratoriosPorCampo( campo, valor, masculino ) {
 				i++;
 			});
 	
-			objetoRespuesta = resgen.getResponse(200, true, null, {laboratorios}, null);
-
-			return resolve(objetoRespuesta);
+			return resolve( new ObjetoResponse(200, true, null, {laboratorios}, null) );
 		})
-		.catch( err => {
-			objetoRespuesta = resgen.getResponse(500, false, 'Error al buscar laboratorio', null, err);
-
-			return reject(objetoRespuesta);
-		});
+		.catch( err => reject(new ObjetoResponse(500, false, 'Error al buscar laboratorio', null, err)) );
 	});
-	
 }
 
 
@@ -85,48 +76,43 @@ function getLaboratoriosPorCampo( campo, valor, masculino ) {
 // ============== Crear nuevo Laboratorio =============== //
 // ====================================================== //
 app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
+
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
 	
 	var laboratorio = new LaboratorioModel( req.body.laboratorio);
 
 	if ( !laboratorio.validarDatos(false) ) {
-		// console.log('if');
-		return res.status(400).json({
-			ok: false,
-			message: 'No se enviaron todos los datos del laboratorio'
-		});
+		objetoResponse = new ObjetoResponse(400, false, 'No se enviaron todos los datos del laboratorio', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	}
 
 	laboratorio.transformarDatos();
 	
+	objetoResponse.message = 'Error al verificar existencia';
 	laboratoriosRef.where('clave', '==', laboratorio.clave).get().then( snapshot => {
 
 		if ( !snapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'Ya existe un laboratorio con la clave ' + laboratorio.clave
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'Ya existe un laboratorio con la clave ' + laboratorio.clave, null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
-		laboratoriosRef.add(laboratorio.toJson()).then( laboratorioCreado => {
-			return res.status(201).json({
-				ok: true,
-				message: 'Laboratorio creado con éxito.',
-				laboratorioId: laboratorioCreado.id
-			});
-			
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error almacenando nuevo laboratorio',
-				error: err
-			});
-		});
+		objetoResponse.message = 'Error almacenando nuevo laboratorio';
+		return laboratoriosRef.add(laboratorio.toJson());
+
+	}).then( laboratorioCreado => {
+
+		objetoResponse = new ObjetoResponse(201, true, 'Laboratorio creado con éxito', {laboratorioId: laboratorioCreado.id}, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+		
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al verificar existencia',
-			error: err
-		});
+
+		if ( err.message !== BREAK_MESSAGE ) {
+			objetoResponse.error = err;
+			console.log(err);
+			console.log(objetoResponse.message);
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+		
 	});
 
 });
@@ -139,128 +125,73 @@ app.post('/', mdAuthentication.esSuperadmin, (req, res)=>{
 // ========================================================== //
 app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+
 	var laboratorio = new LaboratorioModel( req.body.laboratorio );
 
 	if ( !laboratorio.validarDatos() ) {
-		return res.status(400).json({
-			ok: false,
-			message: 'No se enviaron todos los datos del laboratorio'
-		});
+		objetoResponse = new ObjetoResponse(400, false, 'No se enviaron todos los datos del laboratorio', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	}
 
 	laboratorio.transformarDatos();
 
-	// console.log(laboratorio);
-	// console.log('json...');
-	// console.log(laboratorio.toJson());
+	objetoResponse.message = 'Error al verificar existencia del laboratorio (' + laboratorio.claveVieja + ')';
 	
 	// Verificar que sí exista el laboratorio que se modificará
-	laboratoriosRef.where('clave', '==', laboratorio.claveVieja).get().then( laboratoriosSnapshotUno => {
+	laboratoriosRef.where('clave', '==', laboratorio.claveVieja).get()
+	.then( async laboratoriosSnapshotUno => {
 
-		// console.log('Dentro del Where');
+		// ¿Existe el laboratorio?
 		if ( laboratoriosSnapshotUno.empty ) {
-			// console.log('Dentro del Empty');
-			return res.status(400).json({
-				ok: false,
-				message: 'No se encontró ningún laboratorio con la clave ' + laboratorio.claveVieja
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'No se encontró ningún laboratorio con la clave ' + laboratorio.claveVieja, null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 		
 		if ( laboratoriosSnapshotUno.docs.length > 1 ) {
-			// console.log('Dentro del length');
-			return res.status(400).json({
-				ok: false,
-				message: 'Al parecer hay más de 1 laboratorio con la misma clave (' + claveVieja + '). No se modificó ningún laboratorio. Favor de pedirle ayuda al desarrollador.',
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'Al parecer hay más de 1 laboratorio con la misma clave (' + claveVieja + '). No se modificó ningún laboratorio. Favor de pedirle ayuda al desarrollador.', null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
 
-		// Verificar que no haya otro laboratorio con la nueva clave
-
-		if ( laboratorio.clave != laboratorio.claveVieja ) {
-			// console.log(this.laboratorio);
-			laboratoriosRef.where('clave', '==', laboratorio.clave).get().then( laboratoriosSnapshotDos => {
-
-				// console.log('Dentro del Where');
-				var batch = firestore.batch();
-				
-				if ( !laboratoriosSnapshotDos.empty ) {
-					// console.log('Dentro del Empty');
-					return res.status(400).json({
-						ok: false,
-						message: 'Ya existe un laboratorio con la clave ' + laboratorio.clave
-					});
-				}
-
-				// console.log('snapshotDos length: ' + laboratoriosSnapshotDos.docs.length);
-				// console.log(laboratorio.toJson());
-
-				laboratoriosSnapshotUno.forEach( (labDos) => {
-					// console.log('Dentro del Foreach');
-					// For each lab, add an update operation to the batch
-					batch.update(labDos.ref, laboratorio.toJson());
-				});
-
-
-				// console.log('Antes del commit');
-				// Commit the batch
-				return batch.commit().then( () =>{ 
-					// console.log('Dentro del Commit');
-					return res.status(200).json({
-						ok: true,
-						message: 'Laboratorio modificado con éxito'
-					});
-				}).catch( err => {
-					return res.status(500).json({
-						ok: false,
-						message: 'Error al modificar laboratorio con clave ' + clave,
-						error: err
-					});
-				});
+		// Si se modificó la clave del laboratorio...
+		if ( laboratorio.clave !== laboratorio.claveVieja ) {
+			// ...verificar que no exista un laboratorio con la nueva clave
 			
-			}).catch( err => {
-				return res.status(500).json({
-					ok: false,
-					message: 'Error al verificar existencia de la nueva clave (' + laboratorio.clave + ')',
-					error: err
-				});
-			});
-		} else {
+			objetoResponse.message = 'Error al verificar existencia de laboratorio con la nueva clave (' + laboratorio.clave + ')';
 
-			var batch = firestore.batch();
+			var laboratoriosSnapshotDos = await laboratoriosRef.where('clave', '==', laboratorio.clave).get();
 
-			laboratoriosSnapshotUno.forEach(function(lab) {
-				// console.log('Dentro del Foreach');
-				// For each lab, add a delete operation to the batch
-				batch.update(lab.ref, laboratorio.toJson());
-			});
-
-
-			// console.log('Antes del commit');
-			// Commit the batch
-			return batch.commit().then( () =>{ 
-				// console.log('Dentro del Commit');
-				return res.status(200).json({
-					ok: true,
-					message: 'Laboratorio modificado con éxito'
-				});
-			}).catch( err => {
-				return res.status(500).json({
-					ok: false,
-					message: 'Error al modificar laboratorio con clave ' + clave,
-					error: err
-				});
-			});
-		
-
+			// ¿Ya está ocupada la nueva clave?
+			if ( !laboratoriosSnapshotDos.empty ) {
+				objetoResponse = new ObjetoResponse(400, false, 'Ya existe un laboratorio con la clave ' + laboratorio.clave, null, null);
+				throw new Error(BREAK_MESSAGE);
+			}
 		}
+
+		var batch = firestore.batch();
+
+		laboratoriosSnapshotUno.forEach( (lab) => {
+			// For each lab, add an update operation to the batch
+			batch.update(lab.ref, laboratorio.toJson());
+		});
+
+		// Commit the batch
+		objetoResponse.message = 'Error al modificar laboratorio con clave ' + clave;
+		return batch.commit();
+
+	}).then( () => {
+
+		objetoResponse = new ObjetoResponse(200, true, 'Laboratorio modificado con éxito', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al verificar existencia de la vieja clave (' + laboratorio.clave + ')',
-			error: err
-		});
+		if ( err.message !== BREAK_MESSAGE ) {
+			objetoResponse.error = err;
+			console.log(err);
+			console.log(objetoResponse.message);
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	});
 
 });
@@ -273,51 +204,48 @@ app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 // ====================================================== //
 app.delete('/:clave', mdAuthentication.esSuperadmin, (req, res) => {
 	
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+
 	var clave = req.params.clave.toUpperCase();
 
-	laboratoriosRef.where('clave', '==', clave).get().then( (laboratoriosSnapshot) => {
+	objetoResponse.message = 'Error al buscar laboratorio con la clave ' + clave;
+
+	laboratoriosRef.where('clave', '==', clave).get()
+	.then( laboratoriosSnapshot => {
 
 		var batch = firestore.batch();
 
 		if ( laboratoriosSnapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'No se encontró ningún laboratorio con la clave ' + clave,
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'No se encontró ningún laboratorio con la clave ' + clave, null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
 		if ( laboratoriosSnapshot.docs.length > 1 ) {
-			return res.status(400).json({
-				ok: false,
-				message: 'Al parecer hay más de 1 laboratorio con la misma clave (' + clave + '). No se eliminó ningún laboratorio. Favor de pedirle ayuda al desarrollador.',
-			});
+			objetoResponse = new ObjetoResponse(400, false, 'Al parecer hay más de 1 laboratorio con la misma clave (' + clave + '). No se eliminó ningún laboratorio. Favor de pedirle ayuda al desarrollador.', null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
-		laboratoriosSnapshot.forEach(function(lab) {
+		laboratoriosSnapshot.forEach( lab => {
             // For each lab, add a delete operation to the batch
 			batch.delete(lab.ref);
         });
 		
-        // Commit the batch
-		return batch.commit().then( () =>{ 
-			return res.status(200).json({
-				ok: true,
-				message: 'Laboratorio eliminado con éxito'
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: 'Error al eliminar laboratorio con la clave ' + clave,
-				error: err
-			});
-		});
+		// Commit the batch
+		objetoResponse.message = 'Error al eliminar laboratorio con la clave ' + clave;
+		return batch.commit();
+
+	}).then( () => {
+
+		objetoResponse = new ObjetoResponse(200, true, 'Laboratorio eliminado con éxito', null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: 'Error al buscar laboratorio con la clave ' + clave,
-			error: err
-		});
+		if ( err.message !== BREAK_MESSAGE ) {
+			objetoResponse.error = err;
+			console.log(err);
+			console.log(objetoResponse.message);
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	});
 
 	

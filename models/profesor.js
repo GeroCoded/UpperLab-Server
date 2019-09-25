@@ -31,11 +31,11 @@ class ProfesorModel {
 	validarDatos() {
 
 		if (
-			this.matricula == null || 
-			this.nombre    == null || 
-			this.apellidoP == null || 
-			this.apellidoM == null || 
-			this.correo    == null    )
+			this.matricula === null || 
+			this.nombre    === null || 
+			this.apellidoP === null || 
+			this.apellidoM === null || 
+			this.correo    === null    )
 		{
 			return 1;
 		}

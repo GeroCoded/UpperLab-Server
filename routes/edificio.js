@@ -2,7 +2,7 @@ var express = require('express');
 var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 
-var app = express();
+var edificiosRouter = express.Router();
 
 
 const edificiosRef = firestore.collection('edificios');
@@ -10,7 +10,7 @@ const edificiosRef = firestore.collection('edificios');
 // ====================================================== //
 // ============ Consultar todos los edificios =========== //
 // ====================================================== //
-app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+edificiosRouter.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var edificios = [];
 
@@ -46,4 +46,4 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 
 
-module.exports = app;
+module.exports = edificiosRouter;

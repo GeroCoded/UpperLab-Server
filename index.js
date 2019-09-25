@@ -1,31 +1,28 @@
 // Requires
-var express = require('express');
-
-var fileUpload = require('express-fileupload');
-
-var bodyParser = require('body-parser');
+const express = require('express');
+const fileUpload = require('express-fileupload');
+const bodyParser = require('body-parser');
+// const functions = require('firebase-functions');
 
 // FIREBASE ADMIN SDK
-var admin = require('firebase-admin');
-var serviceAccount = require('./serviceAccountKey.json');
+const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
 admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount),
 	databaseURL: 'https://upperlab-e81d9.firebaseio.com'
 });
 
 
-
-// var mongoose = require('mongoose');
-
 // Inicializar variables
-var app = express();
+const app = express();
 
 
 // Middleware de express-fileupload
 app.use(fileUpload());
 
-// 
-app.use(function(req, res, next) {
+
+app.use( (req, res, next) => {
+	// res.header("Access-Control-Allow-Origin", "https://upperlab-e81d9.firebaseapp.com"); // update to match the domain you will make the request from
 	res.header("Access-Control-Allow-Origin", "*"); // update to match the domain you will make the request from
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
@@ -42,7 +39,6 @@ app.use(bodyParser.urlencoded({ extended: false}));
 app.use(bodyParser.json());
 
 
-var loginRoutes = require('./routes/login');
 var alumnoRoutes = require('./routes/alumno');
 var profesorRoutes = require('./routes/profesor');
 var adminRoutes = require('./routes/admin');
@@ -56,8 +52,8 @@ var asistenciasRoutes = require('./routes/asistencia');
 var equipoRoutes = require('./routes/equipo');
 var componenteRoutes = require('./routes/componente');
 var plantillaRoutes = require('./routes/plantilla');
+var ticketRoutes = require('./routes/ticket');
 
-app.use('/login', loginRoutes);
 app.use('/alumno', alumnoRoutes);
 app.use('/profesor', profesorRoutes);
 app.use('/admin', adminRoutes);
@@ -71,6 +67,11 @@ app.use('/asistencia', asistenciasRoutes);
 app.use('/componente', componenteRoutes);
 app.use('/equipo', equipoRoutes);
 app.use('/plantilla', plantillaRoutes);
+app.use('/ticket', ticketRoutes);
+
+
+// exports.api = functions.https.onRequest(app);
+
 
 // Escuchar peticiones del express
 app.listen(3000, '0.0.0.0', ()=>{

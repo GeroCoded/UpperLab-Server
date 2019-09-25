@@ -9,7 +9,7 @@ const carrerasRef = firestore.collection('carreras');
 // ====================================================== //
 // ========== Consultar materia por carrera ============= //
 // ====================================================== //
-app.get('/:clave/materias', /*mdAuthentication.esAdminOSuper,*/ async (req, res)=>{
+app.get('/:clave/materias', mdAuthentication.esAdminOSuper, async (req, res) => {
 	var response = await getMateriasPorCarrera( req.params.clave.toUpperCase() );
 	return res.status(response.code).json(response.json);
 });
@@ -17,7 +17,7 @@ app.get('/:clave/materias', /*mdAuthentication.esAdminOSuper,*/ async (req, res)
 // ====================================================== //
 // ====== Consultar materia por carrera y cuatri ======== //
 // ====================================================== //
-app.get('/:clave/:cuatri/materias', /*mdAuthentication.esAdminOSuper,*/ async (req, res)=>{
+app.get('/:clave/:cuatri/materias', mdAuthentication.esAdminOSuper, async (req, res) => {
 	var response = await getMateriasPorCarreraYCuatri( req.params.clave.toUpperCase(), req.params.cuatri );
 	return res.status(response.code).json(response.json);
 });

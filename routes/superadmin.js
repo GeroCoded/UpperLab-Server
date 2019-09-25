@@ -30,7 +30,7 @@ app.get('/:matricula', mdAuthentication.esSuperadmin, (req, res)=>{
 	.then( superadminDoc => {
 	
 		if ( !superadminDoc.exists ) {
-			return res.status(200).json({
+			return res.status(400).json({
 				ok: false,
 				message: 'No existe ningún superadministrador con la matrícula ' + matricula,
 			});

@@ -11,13 +11,13 @@ exports.esAdmin = function esAdmin(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token == null ) {
+	if( token === null ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
-	auth.verifyIdToken(token).then( (claims)=>{
+	return auth.verifyIdToken(token).then( (claims)=>{
 		if ( claims.isAdmin ) {
-			next();
+			return next();
 		} else {
 			return res.status(401).json(PERMISOS_INSUFICIENTES);
 		}
@@ -34,13 +34,13 @@ exports.esAdminOSuper = function esAdminOSuper(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token == null ) {
+	if( token === null ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
-	auth.verifyIdToken(token).then( (claims)=>{
+	return auth.verifyIdToken(token).then( (claims)=>{
 		if ( claims.isAdmin || claims.isSuperadmin ) {
-			next();
+			return next();
 		} else {
 			return res.status(401).json(PERMISOS_INSUFICIENTES);
 		}
@@ -57,13 +57,13 @@ exports.esSuperadmin = function esSuperadmin(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token == null ) {
+	if( token === null ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
-	auth.verifyIdToken(token).then( (claims)=>{
+	return auth.verifyIdToken(token).then( (claims)=>{
 		if ( claims.isSuperadmin ) {
-			next();
+			return next();
 		} else {
 			return res.status(401).json(PERMISOS_INSUFICIENTES);
 		}
@@ -81,13 +81,13 @@ exports.esAlumno = function esAlumno(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token == null ) {
+	if( token === null ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
-	auth.verifyIdToken(token).then( (claims)=>{
+	return auth.verifyIdToken(token).then( (claims)=>{
 		if ( claims.isAlumno ) {
-			next();
+			return next();
 		} else {
 			return res.status(401).json(PERMISOS_INSUFICIENTES);
 		}
@@ -105,13 +105,13 @@ exports.esProfesor = function esProfesor(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token == null ) {
+	if( token === null ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
-	auth.verifyIdToken(token).then( (claims)=>{
+	return auth.verifyIdToken(token).then( (claims)=>{
 		if ( claims.isProfesor ) {
-			next();
+			return next();
 		} else {
 			return res.status(401).json(PERMISOS_INSUFICIENTES);
 		}

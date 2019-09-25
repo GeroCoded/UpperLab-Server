@@ -2,6 +2,7 @@
 class LaboratorioModel {
 
 	constructor( laboratorio ) {
+		this.id = laboratorio.id;
 		this.nombre = laboratorio.nombre;
 		this.clave = laboratorio.clave;
 		this.claveVieja = laboratorio.claveVieja;
@@ -15,7 +16,7 @@ class LaboratorioModel {
 
 	validarDatos() {
 
-		if ( this.nombre == null  || this.clave == null || this.edificio == null){
+		if ( this.nombre === null  || this.clave === null || this.edificio === null){
 			return false;
 		}
 		return true;

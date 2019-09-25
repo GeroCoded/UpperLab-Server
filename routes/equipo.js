@@ -4,7 +4,9 @@ var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var objectsController = require('../controllers/objects');
 
-var app = express();
+var LaboratorioModel = require('../models/laboratorio');
+
+var equiposRouter = express.Router();
 
 
 const equiposRef = firestore.collection('equipos');
@@ -13,7 +15,7 @@ const equiposRef = firestore.collection('equipos');
 // ====================================================== //
 // ============== CONSULTAR EQUIPOS POR ID ============== //
 // ====================================================== //
-app.get('/:idEquipo', mdAuthentication.esAdminOSuper, (req, res)=>{
+equiposRouter.get('/:idEquipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var idEquipo = req.params.idEquipo;
 
@@ -47,7 +49,7 @@ app.get('/:idEquipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // ========== CONSULTAR EQUIPOS DE LABORATORIO ========== //
 // ====================================================== //
-app.get('/laboratorio/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
+equiposRouter.get('/laboratorio/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var equipos = [];
 
@@ -90,11 +92,11 @@ app.get('/laboratorio/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // ===================== CREAR EQUIPO =================== //
 // ====================================================== //
-app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+equiposRouter.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	var plantilla = req.body.plantilla;
 	var numEquipos = req.body.numEquipos; // El número de equipos que se van a crear.
-	var laboratorio = req.body.laboratorio;
+	var laboratorio = new LaboratorioModel(req.body.laboratorio);
 	var idLaboratorio = laboratorio.id;
 	var ultimoNumEquipo = laboratorio.ultimoNumEquipo;
 
@@ -132,7 +134,7 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 		for (var i = 0; i < respuestas.length; i++) {
 			if ( !respuestas[i] ) {
-				equiposFallidos.push(i);
+				equiposFallidos.push( ultimoNumEquipo + i + 1);
 			}
 		}
 
@@ -143,37 +145,31 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 		console.log('Equipos Creados: ' + equiposCreados);
 		console.log('Clave Laboratorio: ' + idLaboratorio);
 
-		firestore.collection('laboratorios').doc(idLaboratorio).update({
+		return equiposCreados;
+
+	}).then( equiposCreados => {
+
+		return firestore.collection('laboratorios').doc(idLaboratorio).update({
 			numEquipos: admin.firestore.FieldValue.increment( equiposCreados ),
 			ultimoNumEquipo: ultimoNumEquipo
-		}).then( () => {
-
-			var message;
-
-			if ( equiposFallidos.length > 0 ) {
-				message = 'Los equipos ' + equiposFallidos.join(', ') + ' no pudieron ser creados.';
-			} else {
-				message = 'Equipos creados con éxito';
-			}
-
-			console.log('Message: ' + message);
-
-			return res.status(201).json({
-				ok: true,
-				message
-			});
-		
-
-		}).catch( err => {
-			console.log(err);
-			return res.status(500).json({
-				ok: false,
-				message: 'Error al incrementar el numero de equipos en ' + idLaboratorio,
-				error: err
-			});
 		});
-		
-		
+
+	}).then( () => {
+
+		var message;
+
+		if ( equiposFallidos.length > 0 ) {
+			message = 'Los equipos ' + equiposFallidos.join(', ') + ' no pudieron ser creados.';
+		} else {
+			message = 'Equipos creados con éxito';
+		}
+
+		console.log('Message: ' + message);
+
+		return res.status(201).json({
+			ok: true,
+			message
+		});
 		
 	}).catch( err => {
 		console.log(err);
@@ -192,9 +188,9 @@ function crearEquipo(plantilla) {
 	return new Promise( (resolve, reject) => {
 		
 		equiposRef.add( plantilla ).then( docReference => {
-			resolve( true );
-		}).catch( err => {
-			resolve( false );
+			return resolve( true );
+		}).catch( () => {
+			return resolve( false );
 		});
 
 	});
@@ -206,7 +202,7 @@ function crearEquipo(plantilla) {
 // ====================================================== //
 // =================== ELIMINAR EQUIPO ================== //
 // ====================================================== //
-app.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper, (req, res) => {
+equiposRouter.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper, (req, res) => {
 
 	var idLaboratorio = req.params.idLaboratorio;
 	var idEquipo = req.params.idEquipo;
@@ -214,29 +210,22 @@ app.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper, (req, re
 	console.log('ID Laboratorio: ' + idLaboratorio);
 	console.log('ID Equipo: ' + idEquipo);
 
-	equiposRef.doc(idEquipo).delete().then( (writeResult) => {
-
-		firestore.collection('laboratorios').doc(idLaboratorio).update({
+	equiposRef.doc(idEquipo).delete().then( () => {
+		return firestore.collection('laboratorios').doc(idLaboratorio).update({
 			numEquipos: admin.firestore.FieldValue.increment( -1 )
-		}).then( () => {
-
-			return res.status(200).json({
-				ok: true,
-				message: 'Equipo eliminado'
-			});
-
-		}).catch( err => {
-			console.log(err);
-			return res.status(500).json({
-				ok: false,
-				message: 'Error al decrementar el numero de equipos en ' + idLaboratorio,
-				error: err
-			});
 		});
+	}).then( () => {
+
+		return res.status(200).json({
+			ok: true,
+			message: 'Equipo eliminado'
+		});
+
 	}).catch( err => {
+		console.log(err);
 		return res.status(500).json({
 			ok: false,
-			message: 'Error al eliminar equipo',
+			message: 'Error al decrementar el numero de equipos en ' + idLaboratorio,
 			error: err
 		});
 	});
@@ -244,4 +233,5 @@ app.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper, (req, re
 });
 
 
-module.exports = app;
+module.exports = equiposRouter;
+

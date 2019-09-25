@@ -3,6 +3,7 @@ var firestore = require('firebase-admin').firestore();
 
 var mdAuthentication = require('./middlewares/authentication');
 var userCRUD = require('../controllers/userCRUD');
+var ObjetoResponse = require('../models/objetoResponse');
 
 var app = express();
 
@@ -17,14 +18,16 @@ const alumnosRef = firestore.collection(COLECCION);
 // ============ Consultar alumno por matrícula ========== //
 // ====================================================== //
 app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
+	console.log('Consultando alumno por matricula... ' + req.params.matricula);
+	
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
 	
 	var matricula = req.params.matricula.toUpperCase();
 
-	alumnosRef.doc(matricula).get()
-	.then( alumnoDoc => {
+	alumnosRef.doc(matricula).get().then( alumnoDoc => {
 
 		if ( !alumnoDoc.exists ) {
-			return res.status(200).json({
+			return res.status(400).json({
 				ok: false,
 				message: 'No existe ningún alumno con la matrícula ' + matricula,
 			});
@@ -35,8 +38,7 @@ app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 			alumno: alumnoDoc.data()
 		});
 
-	})
-	.catch( err => {
+	}).catch( err => {
 		return res.status(500).json({
 			ok: false,
 			message: 'Error al buscar alumno',
@@ -49,7 +51,6 @@ app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ======= Consultar alumnos por grupo (y carrera) ====== //
 // ====================================================== //
 app.get('/:generacion/:carrera/:grupo', mdAuthentication.esAdminOSuper, (req, res)=>{
-	
 	var gen_carrera_grupo = req.params.generacion + '-' + req.params.carrera + '-' + req.params.grupo;
 
 	alumnosRef.where('grupo', '==', gen_carrera_grupo).get()
@@ -87,9 +88,7 @@ app.get('/:generacion/:carrera/:grupo', mdAuthentication.esAdminOSuper, (req, re
 // ================= Crear nuevo Alumno ================= //
 // ====================================================== //
 app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
-	
-	return userCRUD.crearUsuario(COLECCION, USUARIO_SINGULAR, req, res);
-
+	userCRUD.crearUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 });
 
 // ====================================================== //
@@ -97,7 +96,7 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 app.post('/multiple', mdAuthentication.esAdminOSuper, (req, res)=>{
 
-	return userCRUD.crearMultiplesUsuarios( COLECCION, USUARIO_SINGULAR, req, res);
+	userCRUD.crearMultiplesUsuarios( COLECCION, USUARIO_SINGULAR, req, res);
 
 });
 
@@ -107,7 +106,7 @@ app.post('/multiple', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
-	return userCRUD.modificarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
+	userCRUD.modificarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
 });
 
@@ -117,7 +116,7 @@ app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 app.delete('/:matricula', mdAuthentication.esAdminOSuper, (req, res) => {
 
-	return userCRUD.eliminarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
+	userCRUD.eliminarUsuario(COLECCION, USUARIO_SINGULAR, req, res);
 
 });
 

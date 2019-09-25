@@ -23,7 +23,7 @@ app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 	.then( profesorDoc => {
 
 		if ( !profesorDoc.exists ) {
-			return res.status(200).json({
+			return res.status(400).json({
 				ok: false,
 				message: 'No existe ningún profesor con la matrícula ' + matricula,
 			});

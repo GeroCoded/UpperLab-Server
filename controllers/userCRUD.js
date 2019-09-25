@@ -6,13 +6,14 @@ var ServerResponse = require('http').ServerResponse;
 
 var authController = require('../controllers/authentication');
 var archivosController = require('../controllers/archivos');
-
+var ObjetoResponse = require('../models/objetoResponse');
 var AlumnoModel = require('../models/alumno');
 var ProfesorModel = require('../models/profesor');
 var AdminModel = require('../models/admin');
 var SuperadminModel = require('../models/superadmin');
 
 var MENSAJES_DE_ERROR = require('../config/config').MENSAJES_DE_ERROR;
+var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
 
 
 // ====================================================== //
@@ -22,14 +23,13 @@ exports.obtenerTodosLosUsuarios = function obtenerTodosLosUsuarios( coleccion, u
 
 	var usuarios = [];
 
+	var objetoResponse = new ObjetoResponse( 500, false, `Hubo un problema al consultar a los ${ coleccion }`, {usuarios}, null);
+
 	firestore.collection( coleccion ).get().then( querySnapshot => {
 
 		if ( querySnapshot.empty ) {
-			return res.status(200).json({
-				ok: false,
-				message: `No hay ningún ${ usuarioSingular } registrado`,
-				usuarios
-			});
+			objetoResponse = new ObjetoResponse( 200, false, `No hay ningún ${ usuarioSingular } registrado`, {usuarios}, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
 		querySnapshot.forEach( usuario => {
@@ -38,19 +38,19 @@ exports.obtenerTodosLosUsuarios = function obtenerTodosLosUsuarios( coleccion, u
 			usuarios.push( usuario );
 		});
 
-		return res.status(200).json({
-			ok: true,
-			usuarios
-		});
+		objetoResponse = new ObjetoResponse( 200, true, null, {usuarios}, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: `Hubo un problema al consultar a los ${ coleccion }`,
-			usuarios,
-			error: err
-		});
+
+		if ( err.message !== BREAK_MESSAGE ) {
+			console.log(err);
+			console.log(objetoResponse.message);
+			objetoResponse.error = err;
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
-	
 };
 
 
@@ -70,8 +70,10 @@ exports.obtenerTodosLosUsuarios = function obtenerTodosLosUsuarios( coleccion, u
 // ====================================================== //
 exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, res){
 	
+	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+	
 	var usuario;
-
+	
 	var customClaims = {
 		isAlumno: false,
 		isProfesor: false,
@@ -101,66 +103,49 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 	
 	var numDeError = usuario.validarDatos();
 	
-	if ( numDeError != 0 ) {
-		return res.status(400).json({
-			ok: false,
-			message: MENSAJES_DE_ERROR[numDeError]
-		});
+	if ( numDeError !== 0 ) {
+		objetoResponse = new ObjetoResponse(400, false, MENSAJES_DE_ERROR[numDeError], null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	}
 
+	var displayName = usuario.nombre + ' ' + usuario.apellidoP;
+
+	objetoResponse.message = `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`;
 
 	firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
 
 		if ( !querySnapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: `Ya existe un ${ usuarioSingular } con la matricula ${ usuario.matricula }`
-			});
+			objetoResponse = new ObjetoResponse(400, false, `Ya existe un ${ usuarioSingular } con la matricula ${ usuario.matricula }`, null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 
 		// Crear registro en Cloud Firestore
-		firestore.collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() ).then( () => {
+		objetoResponse.message = `Ocurrió un error al almacenar al nuevo ${ usuarioSingular }`;
+		return firestore.collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() );
 	
-			var displayName = usuario.nombre + ' ' + usuario.apellidoP;
-	
-			authController.crearCuentaDeUsuario(usuario.correo, usuario.matricula, displayName).then( cuentaDeUsuario => {
-				
-				authController.asignarRolAUsuario(cuentaDeUsuario.uid, customClaims).then(()=>{
-					
-					return res.status(201).json({
-						ok: true,
-						message: `El ${ usuarioSingular } se ha creado con éxito`
-					});
-					
-				}).catch( err => {
-					return res.status(500).json({
-						ok: true,
-						message: `Ocurrió un error al asignar el rol del ${ usuarioSingular }`,
-						error: err
-					});
-				});
-				
-			})  
-			.catch( err => {
-				return res.status(400).json({
-					ok: true,
-					message: `El ${ usuarioSingular } se creó, pero ya existía una cuenta de autenticación con su correo`,
-					error: err
-				});
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: `Ocurrió un error al almacenar al nuevo ${ usuarioSingular }`,
-				error: err
-			});
-		});
+	}).then( () => {
+		
+		objetoResponse = new ObjetoResponse(400, true, `El ${ usuarioSingular } se creó, pero ya existía una cuenta de autenticación con su correo`, null, null);
+		return authController.crearCuentaDeUsuario(usuario.correo, usuario.matricula, displayName);
+
+	}).then( cuentaDeUsuario => {
+
+		objetoResponse = new ObjetoResponse(500, false, `Ocurrió un error al asignar el rol del ${ usuarioSingular }`, null, null);
+		return authController.asignarRolAUsuario(cuentaDeUsuario.uid, customClaims)
+
+	}).then( () => {
+		objetoResponse = new objetoResponse(201, true, `El ${ usuarioSingular } se ha creado con éxito`, null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
+
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`,
-			error: err
-		});
+		if( err.message !== BREAK_MESSAGE ) {
+			console.log(err);
+			console.log(objetoResponse.message);
+			objetoResponse.error = err;
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
 
 };
@@ -211,7 +196,6 @@ exports.crearMultiplesUsuarios = function crearMultiplesUsuarios( coleccion, usu
 			error: err
 		});
 	});
-	
 };
 
 
@@ -220,37 +204,37 @@ function validarUsuario(coleccion, usuario) {
 	return new Promise( async (resolve, reject) => {
 		try {
 
-			console.log('usuario.errores.length > 0  (1)');
+			// console.log('usuario.errores.length > 0  (1)');
 			if ( usuarioTieneErrores(usuario) ) {
 				return resolve(usuario.toJsonExcel());
 			}
 
-			console.log('verificarExistencia');
+			// console.log('verificarExistencia');
 			await verificarExistencia(coleccion, usuario);
 
-			console.log('usuario.errores.length > 0  (2)');
+			// console.log('usuario.errores.length > 0  (2)');
 			if ( usuarioTieneErrores(usuario) ) {
 				return resolve(usuario.toJsonExcel());
 			}
 
-			console.log('crearRegistro');
+			// console.log('crearRegistro');
 			await crearRegistro(coleccion, usuario);
 			
-			console.log('usuario.errores.length > 0  (3)');
+			// console.log('usuario.errores.length > 0  (3)');
 			if ( usuarioTieneErrores(usuario) ) {
 				return resolve(usuario.toJsonExcel());
 			}
 
-			console.log('crearCuentaDeUsuario');
+			// console.log('crearCuentaDeUsuario');
 			var cuentaDeUsuario = await crearCuentaDeUsuario(usuario);
 
 			if ( usuarioTieneErrores(usuario) ) {
 				return resolve(usuario.toJsonExcel());
 			}
-			console.log('asignarRolAUsuario');
+			// console.log('asignarRolAUsuario');
 			await asignarRolAUsuario(usuario, cuentaDeUsuario);
 
-			console.log('Finalizando...');
+			// console.log('Finalizando...');
 			return resolve(usuario.toJsonExcel());
 			
 			
@@ -333,6 +317,8 @@ function asignarRolAUsuario( usuario, cuentaDeUsuario ) {
 // ====================================================== //
 exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular, req, res ) {
 
+	var objetoResponse = new ObjetoResponse( 500, false, 'Internal Server Error', null, null );
+
 	var usuario;
 
 	switch ( usuarioSingular ) {
@@ -352,45 +338,41 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 
 	var numDeError = usuario.validarDatos();
 
-	if ( numDeError != 0 ) {
-		return res.status(400).json({
-			ok: false,
-			message: MENSAJES_DE_ERROR[numDeError]
-		});
+	if ( numDeError !== 0 ) {
+		objetoResponse = new ObjetoResponse(400, false, MENSAJES_DE_ERROR[numDeError], null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
 	}
 
+	objetoResponse.message = `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`;
 
-	firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
+	firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get()
+	.then( querySnapshot => {
 
 		if ( querySnapshot.empty ) {
-			return res.status(400).json({
-				ok: false,
-				message: `No existe el ${ usuarioSingular } con la matricula ${ usuario.matricula }`
-			});
+			objetoResponse = new ObjetoResponse(400, false, `No existe el ${ usuarioSingular } con la matricula ${ usuario.matricula }`, null, null);
+			throw new Error(BREAK_MESSAGE);
 		}
 		
 		documentData = usuario.toJsonModified();
-		console.log(documentData);
-		firestore.collection( coleccion ).doc( usuario.matricula ).set( documentData, {merge: true} ).then( () => {
-	
-			return res.status(201).json({
-				ok: true,
-				message: `El ${ usuarioSingular } ha sido modificado con éxito`
-			});
-			
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: `Ocurrió un error al actualizar al ${ usuarioSingular }`,
-				error: err
-			});
-		});
+
+		objetoResponse.message = `Ocurrió un error al actualizar al ${ usuarioSingular }`;
+		
+		return firestore.collection( coleccion ).doc( usuario.matricula ).set( documentData, {merge: true} );
+
+	}).then( () => {
+
+		objetoResponse = new ObjetoResponse(201, true, `El ${ usuarioSingular } ha sido modificado con éxito`, null, null);
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`,
-			error: err
-		});
+		
+		if ( err.message !== BREAK_MESSAGE ) {
+			console.log(err);
+			console.log(objetoResponse.message);
+			objetoResponse.error = err;
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
 
 };
@@ -415,54 +397,50 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 // =================== Eliminar Usuario =================== //
 // ======================================================== //
 exports.eliminarUsuario = function eliminarUsuario( coleccion, usuarioSingular, req, res) {
+	console.log('Eliminando usuario...');
 
+	var objetoResponse = new ObjetoResponse( 500, false, 'Internal Server Error', null, null );
+	
+	var docSnapshotHolder;
 	var matricula = req.params.matricula;
 	matricula = matricula.toUpperCase();
 
+	objetoResponse.message = `Error al consultar ${ usuarioSingular } con matricula ${ matricula }`;
 	firestore.collection( coleccion ).doc( matricula ).get().then( documentSnapshot => {
+		
+		docSnapshotHolder = documentSnapshot;
 
 		if ( !documentSnapshot.exists ) {
-			return res.status(400).json({
-				ok: false,
-				message: `No se encontró al ${ usuarioSingular } con la matrícula ${ matricula }`
-			});
+			objetoResponse = new ObjetoResponse( 400, false, `No se encontró al ${ usuarioSingular } con la matrícula ${ matricula }`, null, null );
+			throw new Error(BREAK_MESSAGE);
 		}
+		
+		objetoResponse.message = `Error al eliminar ${ usuarioSingular } con la matrícula ${ matricula }`;
+		return firestore.collection( coleccion ).doc( matricula ).delete();
+	
+	}).then( () => {
 
-		firestore.collection( coleccion ).doc( matricula ).delete().then( () => {
-			authController.obtenerCuentaDeUsuarioPorCorreo( matricula ).then( usuario => {
-				authController.eliminarCuentaDeUsuario( usuario.uid ).then( () => {
-					return res.status(200).json({
-						ok: true,
-						message: `El ${ usuarioSingular } '${ documentSnapshot.data().nombre }' ha sido eliminado satisfactoriamente`
-					});
-				}).catch( err => {
-					return res.status(500).json({
-						ok: false,
-						message: `Ocurrió un error al eliminar cuenta de autenticación del ${ usuarioSingular } con matrícula ${ matricula }`,
-						error: err
-			
-					});
-				});
-			}).catch( err => {
-				return res.status(200).json({
-					ok: false,
-					message: `El registro del ${ usuarioSingular } se eliminó pero, al parecer, el ${ usuarioSingular } no tenía ninguna cuenta vinculada para autenticarse`,
-					error: err
-				});
-			});
-		}).catch( err => {
-			return res.status(500).json({
-				ok: false,
-				message: `Ocurrió un error al eliminar registro del ${ usuarioSingular } con matrícula ${ matricula }`,
-				error: err
-			});
-		});
+		objetoResponse = new ObjetoResponse( 200, false, `El registro del ${ usuarioSingular } se eliminó pero el ${ usuarioSingular } no tenía ninguna cuenta vinculada para autenticarse`, null, null );
+		return authController.obtenerCuentaDeUsuarioPorCorreo( matricula );
+
+	}).then( usuario => {
+
+		objetoResponse = new ObjetoResponse( 500, false, `Error al eliminar cuenta de autenticación del ${ usuarioSingular } con matrícula ${ matricula }`, null, null );
+		return authController.eliminarCuentaDeUsuario( usuario.uid );
+
+	}).then( () => {
+
+		objetoResponse = new ObjetoResponse( 200, true, `El ${ usuarioSingular } '${ docSnapshotHolder.data().nombre }' ha sido eliminado satisfactoriamente`, null, null );
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+				
 	}).catch( err => {
-		return res.status(500).json({
-			ok: false,
-			message: `Ocurrió un error al buscar al ${ usuarioSingular } con matrícula ${ matricula }`,
-			error: err
-		});
+		if ( err.message !== BREAK_MESSAGE ) {
+			console.log(err);
+			console.log(objetoResponse.message);
+			objetoResponse.error = err;
+		}
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
 	});
 };
 

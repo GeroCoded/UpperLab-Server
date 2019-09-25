@@ -22,16 +22,16 @@ class ClaseModel {
 	validarDatos() {
 
 		// Campos requeridos
-		if (this.claseID 	  == null || 
-			this.tipo 		  == null || 
-			this.grupoID	  == null ||
-			this.carreraID	  == null ||
-			this.cuatrimestre == null ||
-			this.materiaID 	  == null ||
-			this.materia 	  == null ||
-			this.profesorID   == null ||
-			this.alumnos	  == null ||
-			this.profesor 	  == null   ){
+		if (this.claseID 	  === null || 
+			this.tipo 		  === null || 
+			this.grupoID	  === null ||
+			this.carreraID	  === null ||
+			this.cuatrimestre === null ||
+			this.materiaID 	  === null ||
+			this.materia 	  === null ||
+			this.profesorID   === null ||
+			this.alumnos	  === null ||
+			this.profesor 	  === null   ){
 			return false;
 		}
 		return true;

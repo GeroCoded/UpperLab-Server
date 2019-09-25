@@ -34,7 +34,7 @@ app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 	.then( adminDoc => {
 
 		if ( !adminDoc.exists ) {
-			return res.status(200).json({
+			return res.status(400).json({
 				ok: false,
 				message: 'No existe ningún admin con la matrícula ' + matricula,
 			});
