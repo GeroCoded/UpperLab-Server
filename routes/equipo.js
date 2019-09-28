@@ -6,7 +6,7 @@ var objectsController = require('../controllers/objects');
 
 var LaboratorioModel = require('../models/laboratorio');
 
-var equiposRouter = express.Router();
+var app = express();
 
 
 const equiposRef = firestore.collection('equipos');
@@ -15,7 +15,7 @@ const equiposRef = firestore.collection('equipos');
 // ====================================================== //
 // ============== CONSULTAR EQUIPOS POR ID ============== //
 // ====================================================== //
-equiposRouter.get('/:idEquipo', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/:idEquipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var idEquipo = req.params.idEquipo;
 
@@ -49,7 +49,7 @@ equiposRouter.get('/:idEquipo', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // ========== CONSULTAR EQUIPOS DE LABORATORIO ========== //
 // ====================================================== //
-equiposRouter.get('/laboratorio/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/laboratorio/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var equipos = [];
 
@@ -92,7 +92,7 @@ equiposRouter.get('/laboratorio/:clave', mdAuthentication.esAdminOSuper, (req, r
 // ====================================================== //
 // ===================== CREAR EQUIPO =================== //
 // ====================================================== //
-equiposRouter.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	var plantilla = req.body.plantilla;
 	var numEquipos = req.body.numEquipos; // El número de equipos que se van a crear.
@@ -200,9 +200,35 @@ function crearEquipo(plantilla) {
 
 
 // ====================================================== //
+// ================== ACTUALIZAR EQUIPO ================= //
+// ====================================================== //
+app.put('/', mdAuthentication.esAdminOSuper, (req, res) => {
+
+	var equipo = req.body.equipo;
+
+	equiposRef.doc(equipo.id).update(equipo).then( () => {
+
+		return res.status(200).json({
+			ok: true,
+			message: 'Equipo actualizado'
+		});
+
+	}).catch( err => {
+		console.log(err);
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al actualizar equipo',
+			error: err
+		});
+	});
+	
+});
+
+
+// ====================================================== //
 // =================== ELIMINAR EQUIPO ================== //
 // ====================================================== //
-equiposRouter.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper, (req, res) => {
+app.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper, (req, res) => {
 
 	var idLaboratorio = req.params.idLaboratorio;
 	var idEquipo = req.params.idEquipo;
@@ -233,5 +259,47 @@ equiposRouter.delete('/:idLaboratorio/:idEquipo', mdAuthentication.esAdminOSuper
 });
 
 
-module.exports = equiposRouter;
+
+// ====================================================== //
+// ============ CAMBIAR ESTADO DE COMPONENTE ============ //
+// ====================================================== //
+app.put('/componente', mdAuthentication.esAdminOSuper, (req, res) => {
+
+	const idEquipo = req.body.idEquipo;
+	const componente = req.body.componente;
+	const estado = Number(req.body.estado);
+
+	const estadoActualizado = {};
+
+	estadoActualizado[componente+'.estado'] = estado;
+
+	const actualizacion = equiposRef.doc(idEquipo).update(estadoActualizado);
+	
+	actualizacion.then( () => {
+
+		return res.status(201).json({
+			ok: true,
+			message: 'Estado del componente actualizado'
+		});
+		
+	}).catch( err => {
+
+		if ( err.code === 5 ) {
+			return res.status(400).json({
+				ok: false,
+				message: 'Datos erróneos',
+			});
+		} else {
+			return res.status(500).json({
+				ok: false,
+				message: 'Error al actualizar estado del componente',
+				error: err
+			});
+		}
+
+	});
+});
+
+
+module.exports = app;
 
