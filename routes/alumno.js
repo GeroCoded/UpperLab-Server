@@ -20,8 +20,6 @@ const alumnosRef = firestore.collection(COLECCION);
 app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
 	console.log('Consultando alumno por matricula... ' + req.params.matricula);
 	
-	var objetoResponse = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
-	
 	var matricula = req.params.matricula.toUpperCase();
 
 	alumnosRef.doc(matricula).get().then( alumnoDoc => {

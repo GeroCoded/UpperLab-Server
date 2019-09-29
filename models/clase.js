@@ -30,8 +30,10 @@ class ClaseModel {
 			this.materiaID 	  === null ||
 			this.materia 	  === null ||
 			this.profesorID   === null ||
-			this.alumnos	  === null ||
-			this.profesor 	  === null   ){
+			this.profesor	  === null ||
+			this.laboratorios === null ||
+			this.dias		  === null ||
+			this.alumnos	  === null   ) {
 			return false;
 		}
 		return true;
@@ -44,6 +46,7 @@ class ClaseModel {
 		this.cuatrimestre = this.cuatrimestre;
 		this.materiaID = this.materiaID.toUpperCase();
 		this.profesorID = this.profesorID.toUpperCase();
+		this.dias = this.dias.toLowerCase();
 	}
 
 	toJson() {
@@ -57,9 +60,11 @@ class ClaseModel {
 			materia			: this.materia,
 			profesorID		: this.profesorID,
 			profesor		: this.profesor,
+			laboratorios	: this.laboratorios,
+			dias			: this.dias,
+			alumnos			: this.alumnos,
 			configuracion	: this.configuracion,
-			horario			: this.horario,
-			alumnos			: this.alumnos
+			horario			: this.horario
 		};
 	}
 

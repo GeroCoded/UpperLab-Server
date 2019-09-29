@@ -10,24 +10,21 @@ var app = express();
 const clasesRef = firestore.collection('clases');
 
 // ====================================================== //
-// === Consultar Lista de Clases por Carrera y Cuatri === //
+// === Consultar Lista de Clases por Carrera y Grupo  === //
 // ====================================================== //
-app.get('/lista/:carreraID/:cuatrimestre', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/lista/:carreraID/:grupoID', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var clases = [];
 
 	var carreraID = req.params.carreraID;
-	var cuatrimestre = req.params.cuatrimestre;
+	var grupoID = req.params.grupoID;
 
-	console.log(carreraID);
-	console.log(cuatrimestre);
-
-	clasesRef.where('carreraID', '==', carreraID).where('cuatrimestre', '==', cuatrimestre).get().then( querySnapshot => {
+	clasesRef.where('carreraID', '==', carreraID).where('grupoID', '==', grupoID).get().then( querySnapshot => {
 
 		if ( querySnapshot.empty ) { 
 			return res.status(200).json({
 				ok: false,
-				message: 'No hay clases en ' + carreraID + ' ' + cuatrimestre
+				message: 'No hay clases en ' + carreraID + ' ' + grupoID
 			});
 		}
 
@@ -109,8 +106,6 @@ app.get('/conHorario/:laboratorio', mdAuthentication.esAdminOSuper, (req, res)=>
 			});
 		}
 
-		
-
 		querySnapshot.forEach( queryDocumentSnapshot => {
 			clases.push( queryDocumentSnapshot.data() );
 		});
@@ -139,6 +134,8 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var clase = new ClaseModel( req.body.clase);
 	
+	console.log(clase);
+	
 	if ( !clase.validarDatos() ) {
 		objetoResponse = new ObjetoResponse(400, false, 'No se enviaron todos los datos de la clase', null, null);
 		return res.status(objetoResponse.code).json(objetoResponse.response);
@@ -157,6 +154,9 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 		objetoResponse.message = 'Error al crear la clase ' + clase.claseID;
 	
+		console.log("========= CLASE TO JSON =========");
+		console.log(clase.toJson());
+		
 		return clasesRef.doc(clase.claseID).set( clase.toJson() );
 		
 	}).then( () => {
@@ -231,7 +231,7 @@ app.delete('/:claseID', mdAuthentication.esAdminOSuper, (req, res) => {
 		var batch = firestore.batch();
 
 		if ( clasesSnapshot.empty ) {
-			var objetoResponse = new ObjetoResponse(400, false, 'No se encontró ninguna clase con el ID ' + claseID, null, null);
+			objetoResponse = new ObjetoResponse(400, false, 'No se encontró ninguna clase con el ID ' + claseID, null, null);
 			throw new Error(BREAK_MESSAGE);
 		}
 
@@ -285,7 +285,7 @@ app.post('/horarios', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 	clases.forEach(clase => {
 		claseRef = firestore.collection('clases').doc(clase.claseID);
-		batch.update( claseRef, {horario: clase.horario, laboratorios: clase.laboratorios} );
+		batch.update( claseRef, {horario: clase.horario, laboratorios: clase.laboratorios, dias: clase.dias} );
 	});
 
 	batch.commit().then( () => {
