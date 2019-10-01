@@ -125,6 +125,41 @@ app.get('/conHorario/:laboratorio', mdAuthentication.esAdminOSuper, (req, res)=>
 		
 });
 
+
+// ====================================================== //
+// =============== CONSULTAR CLASE POR ID =============== //
+// ====================================================== //
+app.get('/:claseID', mdAuthentication.esAdminOSuper, (req, res)=>{
+	
+	let claseID = req.params.claseID;
+
+	clasesRef.doc(claseID).get().then( documentSnapshot => {
+
+		if ( !documentSnapshot.exists ) {
+			return res.status(400).json({
+				ok: false,
+				message: 'No existe la clase con el id ' + claseID
+			});
+		}
+
+		clase = documentSnapshot.data();
+
+		return res.status(200).json({
+			ok: true,
+			clase
+		});
+		
+	}).catch( err => {
+		return res.status(500).json({
+			ok: false,
+			message: 'Error al buscar clase',
+			error: err
+		});
+	});
+		
+});
+
+
 // ====================================================== //
 // ================= Crear nueva Clase ================== //
 // ====================================================== //
@@ -278,7 +313,7 @@ app.post('/horarios', mdAuthentication.esAdminOSuper, (req, res)=>{
 		clases.push( new ClaseModel(clase) );
 	});
 	
-	console.log(clases);
+	// console.log(clases);
 
 	var batch = firestore.batch();
 	var claseRef;

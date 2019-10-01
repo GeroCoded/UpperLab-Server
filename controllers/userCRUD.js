@@ -57,6 +57,44 @@ exports.obtenerTodosLosUsuarios = function obtenerTodosLosUsuarios( coleccion, u
 
 
 
+/**
+ * Consultar usuario por medio de su matrícula.
+ * 
+ * @param coleccion Nombre de la colección donde se encuentra el usuario.
+ * @param matricula Matrícula del usuario.
+ * @param usuarioSingular El tipo de usuario en su forma singular.
+ * @return Promesa de la consulta.
+ */
+exports.consultarUsuarioPorMatricula = function consultarUsuarioPorMatricula( coleccion, matricula, usuarioSingular ) {
+
+	return new Promise( (resolve, reject) => {
+
+		var objetoResponse;
+
+		firestore.collection( coleccion ).doc( matricula ).get().then( documentSnapshot => {
+
+			if ( !documentSnapshot.exists ) {
+				objetoResponse = new ObjetoResponse( 400, false, `No existe ningún ${ usuarioSingular } con la matrícula ${ matricula }`, null, null );
+				return reject( objetoResponse );
+			}
+
+			var usuario = {};
+			usuario[usuarioSingular] = documentSnapshot.data();
+			objetoResponse = new ObjetoResponse( 200, true, null, usuario, null );
+			return resolve( objetoResponse );
+			
+		}).catch( err => {
+			objetoResponse = new ObjetoResponse( 500, false, `Error al buscar ${ usuarioSingular }`, null, err );
+			return reject(objetoResponse);
+		});
+		
+	});
+}
+
+
+
+
+
 
 
 
@@ -134,7 +172,7 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 		return authController.asignarRolAUsuario(cuentaDeUsuario.uid, customClaims)
 
 	}).then( () => {
-		objetoResponse = new objetoResponse(201, true, `El ${ usuarioSingular } se ha creado con éxito`, null, null);
+		objetoResponse = new ObjetoResponse(201, true, `El ${ usuarioSingular } se ha creado con éxito`, null, null);
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 

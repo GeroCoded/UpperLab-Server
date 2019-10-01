@@ -65,6 +65,14 @@ class ObjetoResponse {
 	}
 
 
+	/**
+	 * Muestra en consola el status code y el mensaje de la respuesta. Esto 
+	 * para que sea más sencillo debuggear si ya se encuentra el backend en
+	 * firebase functions.
+	 */
+	consoleLog() {
+		console.log(`${ this.code } | ${ this.response.message }`);
+	}
 }
 
 module.exports = ObjetoResponse;
