@@ -80,7 +80,7 @@ exports.consultarUsuarioPorMatricula = function consultarUsuarioPorMatricula( co
 
 			var usuario = {};
 			usuario[usuarioSingular] = documentSnapshot.data();
-			objetoResponse = new ObjetoResponse( 200, true, null, usuario, null );
+			objetoResponse = new ObjetoResponse( 200, true, 'Alumno consultado con éxito', usuario, null );
 			return resolve( objetoResponse );
 			
 		}).catch( err => {

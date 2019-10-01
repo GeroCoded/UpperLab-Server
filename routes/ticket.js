@@ -1,6 +1,7 @@
 var express = require('express');
 var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
+var ObjetoResponse = require('../models/objetoResponse');
 
 var app = express();
 
@@ -56,22 +57,22 @@ app.get('/:matricula', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
 // ====================================================== //
 // =================== CREAR TICKET ================== //
 // ====================================================== //
-app.post('/', /*mdAuthentication.esAdminOSuper,*/ (req, res)=>{
-
+app.post('/', mdAuthentication.esAlumnoOProfesor, (req, res)=>{
+	console.log('  - Creando ticket... - ');
 	var ticket = req.body.ticket;
-	console.log(req.body);
 	console.log(ticket);
 
+	var respuesta = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+
 	ticketsRef.add( ticket ).then( docReference => {
-		return res.status(200).json({
-			ok: true
-		});
+		respuesta = new ObjetoResponse(200, true, 'Ticket creado', null, null);
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
 	}).catch( err => {
 		console.log(err);
-		return res.status(500).json({
-			ok: false,
-			error: err
-		});
+		respuesta.error = err;
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
 	});
 });
 

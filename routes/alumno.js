@@ -17,17 +17,18 @@ const alumnosRef = firestore.collection(COLECCION);
 // ====================================================== //
 // ============ Consultar alumno por matrícula ========== //
 // ====================================================== //
-app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/:matricula', mdAuthentication.esAdminOSuperOAlumno, (req, res)=>{
 	console.log('Consultando alumno por matricula... ' + req.params.matricula);
 	
 	var matricula = req.params.matricula.toUpperCase();
 
 	userCRUD.consultarUsuarioPorMatricula( COLECCION, matricula, USUARIO_SINGULAR ).then( objetoResponse => {
 		
+		objetoResponse.consoleLog();
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( objetoResponse => {
-
+		objetoResponse.consoleLog();
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	});
