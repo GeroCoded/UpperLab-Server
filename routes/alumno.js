@@ -39,6 +39,26 @@ app.get('/:matricula', mdAuthentication.esAdminOSuperOAlumno, (req, res)=>{
 // ====================================================== //
 // ================= Consultar asignación =============== //
 // ====================================================== //
+app.get('/asignacion/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
+	console.log('Consultando alumno con asignaciones... ' + req.params.matricula);
+	
+	var matricula = req.params.matricula.toUpperCase();
+
+	consultarAsignaciones( matricula, null, null ).then( objetoResponse => {
+		
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
+	}).catch( objetoResponse => {
+
+		return res.status(objetoResponse.code).json(objetoResponse.response);
+
+	});
+
+});
+
+// ====================================================== //
+// ================= Consultar asignación =============== //
+// ====================================================== //
 app.get('/asignacion/:matricula/:claseID/:clave', mdAuthentication.esAdminOSuper, (req, res)=>{
 	console.log('Consultando alumno con asignaciones... ' + req.params.matricula);
 	
@@ -159,9 +179,12 @@ function consultarAsignaciones( matricula, claseID, clave ) {
 		var objetoResponse;
 
 		var query = alumnosRef.doc(matricula).collection('asignaciones');
-		query = query.where('clase.id', '==', claseID).where('clase.laboratorio', '==', clave.toLowerCase()).get();
 
-		query.then( querySnapshot => {
+		if ( claseID !== null && clave !== null ) {
+			query = query.where('clase.id', '==', claseID).where('clase.laboratorio', '==', clave.toLowerCase());
+		}
+
+		query.get().then( querySnapshot => {
 			if ( querySnapshot.empty ) {
 				objetoResponse = new ObjetoResponse(200, false, 'Alumno con matrícula ' + matricula + ' sin asignaciones.', {asignaciones}, null);
 				return resolve(objetoResponse);
