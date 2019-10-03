@@ -4,11 +4,11 @@ class LaboratorioModel {
 	constructor( laboratorio ) {
 		this.id = laboratorio.id;
 		this.nombre = laboratorio.nombre;
-		this.clave = laboratorio.clave;
+		this.clave = laboratorio._clave;
 		this.claveVieja = laboratorio.claveVieja;
 		this.edificio = laboratorio.edificio;
 		this.encargados = laboratorio.encargados;
-		this.numEquipos = laboratorio.numEquipos;
+		this.nEquipos = laboratorio.nEquipos;
 		this.ultimoNumEquipo = laboratorio.ultimoNumEquipo;
 		this.nIncidencias = laboratorio.nIncidencias;
 		this.nIncidenciasUrgentes = laboratorio.nIncidenciasUrgentes;
@@ -41,7 +41,7 @@ class LaboratorioModel {
 			clave: this.clave,
 			edificio: this.edificio,
 			encargados: this.encargados,
-			numEquipos: this.numEquipos,
+			nEquipos: this.nEquipos,
 			nIncidencias: this.nIncidencias,
 			nIncidenciasUrgentes: this.nIncidenciasUrgentes
 		};

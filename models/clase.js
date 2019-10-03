@@ -46,7 +46,7 @@ class ClaseModel {
 		this.cuatrimestre = this.cuatrimestre;
 		this.materiaID = this.materiaID.toUpperCase();
 		this.profesorID = this.profesorID.toUpperCase();
-		this.dias = this.dias.toLowerCase();
+		// this.tipo = this.tipo.toLowerCase();
 	}
 
 	toJson() {

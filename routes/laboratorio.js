@@ -149,7 +149,7 @@ app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 		}
 		
 		if ( laboratoriosSnapshotUno.docs.length > 1 ) {
-			objetoResponse = new ObjetoResponse(400, false, 'Al parecer hay más de 1 laboratorio con la misma clave (' + claveVieja + '). No se modificó ningún laboratorio. Favor de pedirle ayuda al desarrollador.', null, null);
+			objetoResponse = new ObjetoResponse(400, false, 'Al parecer hay más de 1 laboratorio con la misma clave (' + laboratorio.claveVieja + '). No se modificó ningún laboratorio. Favor de pedirle ayuda al desarrollador.', null, null);
 			throw new Error(BREAK_MESSAGE);
 		}
 
@@ -177,7 +177,7 @@ app.put('/', mdAuthentication.esSuperadmin, (req, res)=>{
 		});
 
 		// Commit the batch
-		objetoResponse.message = 'Error al modificar laboratorio con clave ' + clave;
+		objetoResponse.message = 'Error al modificar laboratorio con clave ' + laboratorio.clave;
 		return batch.commit();
 
 	}).then( () => {
