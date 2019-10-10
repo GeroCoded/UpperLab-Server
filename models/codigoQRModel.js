@@ -1,22 +1,45 @@
 var crypto = require('crypto');
 
 class CodigoQRModel {
-	constructor ( matricula, codigoQR, key, iv ){
-		this.matricula = matricula;
-		this.equipo = '';
+	constructor ( codigoQR ){
+		this.codigoQR = codigoQR;
+		this.equipoID = '';
 		this.laboratorio = '';
-		this.decodificarCodigoQR( codigoQR, key, iv );
+		this.decodificarCodigoQR();
 	}
 
 
 	// ====================================================== //
 	// ================ Funcion decodificar ================= //
 	// ====================================================== //
-	decodificarCodigoQR( codigoQR, key, iv ){
+	decodificarCodigoQR(){
 		// La llave 'upperlab' es estatica de momento
-		var descencriptador = crypto.createDecipheriv('aes-256-cbc', key, iv);
-		var cadena = descencriptador.update(codigoQR, 'hex', 'utf-8');
-		cadena += descencriptador.final('utf-8');
+		// var key = crypto.createHash('sha256').update(String('upperlab')).digest('base64').substr(0, 32);
+		// var iv = crypto.randomBytes(16);
+
+		// var descencriptador = crypto.createDecipheriv('aes-256-cbc', key, iv);
+		// var cadena = descencriptador.update(this.codigoQR, 'hex', 'utf-8');
+		// console.log();
+		// console.log();
+		// console.log(cadena);
+		// cadena += descencriptador.final('utf-8');
+
+		// console.log();
+		// console.log();
+		// console.log('Cadena Decodificada: ');
+		// console.log(cadena);
+		// console.log();
+		// console.log();
+
+		var cadena = '{"laboratorio":"LC","equipoID":"m8IExJr5SgMXwTN5MGLL"}';
+
+		// Convertir a objeto JSON la cadena desencriptada.
+		var objeto = JSON.parse(cadena);
+
+		this.equipoID = objeto.equipoID;
+		this.laboratorio = objeto.laboratorio;
+
+		// return cadena;
 
 		// console.log('La cadena descifrada es: ');
 		// console.log(cadena);
@@ -26,8 +49,6 @@ class CodigoQRModel {
 
 		// console.log('El laboratorio desencriptado es: ');
 		// console.log(objeto.laboratorio);
-
-		return cadena;
 	}
 }
 
