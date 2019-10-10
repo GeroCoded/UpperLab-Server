@@ -11,7 +11,7 @@ exports.esAdmin = function esAdmin(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
@@ -34,7 +34,7 @@ exports.esAdminOSuper = function esAdminOSuper(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
@@ -57,7 +57,7 @@ exports.esSuperadmin = function esSuperadmin(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
@@ -81,7 +81,7 @@ exports.esAlumno = function esAlumno(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
@@ -105,7 +105,7 @@ exports.esProfesor = function esProfesor(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
@@ -129,7 +129,7 @@ exports.esAlumnoOProfesor = function esAlumnoOProfesor(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
@@ -153,7 +153,7 @@ exports.esAdminOSuperOAlumno = function esAdminOSuperOAlumno(req, res, next) {
 	
 	var token = req.query.token;
 
-	if( token === null ) {
+	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
 
