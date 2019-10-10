@@ -39,17 +39,17 @@ app.get('/:matricula', mdAuthentication.esAdminOSuperOAlumno, (req, res)=>{
 // ====================================================== //
 // ================= Consultar asignación =============== //
 // ====================================================== //
-app.get('/asignacion/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/asignacion/:matricula', mdAuthentication.esAdminOSuperOAlumno, (req, res)=>{
 	console.log('Consultando alumno con asignaciones... ' + req.params.matricula);
 	
 	var matricula = req.params.matricula.toUpperCase();
 
 	consultarAsignaciones( matricula, null, null ).then( objetoResponse => {
-		
+		objetoResponse.consoleLog();		
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( objetoResponse => {
-
+		objetoResponse.consoleLog();
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	});
@@ -194,7 +194,7 @@ function consultarAsignaciones( matricula, claseID, clave ) {
 				asignaciones[asignacion.id] = asignacion.data();
 			});
 
-			objetoResponse = new ObjetoResponse( 200, true, null, {asignaciones}, null );
+			objetoResponse = new ObjetoResponse( 200, true, 'Asignaciones consultadas con éxito.', {asignaciones}, null );
 			return resolve(objetoResponse);
 		}).catch( err => {
 			objetoResponse = new ObjetoResponse( 500, false, `Error al buscar asignaciones del alumno con matrícula ${ matricula }`, null, err );

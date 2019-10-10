@@ -48,9 +48,9 @@ class ProfesorModel {
 	transformarDatos( ) {
 		this.matricula = this.matricula.toUpperCase();
 		this.correo = this.correo.toLowerCase();
-		this.nombre = utils.stringsACamelSpacedCase(this.nombre);
-		this.apellidoP = utils.stringsACamelSpacedCase(this.apellidoP);
-		this.apellidoM = utils.stringsACamelSpacedCase(this.apellidoM);
+		this.nombre = utils.stringsToCamelSpacedCase(this.nombre);
+		this.apellidoP = utils.stringsToCamelSpacedCase(this.apellidoP);
+		this.apellidoM = utils.stringsToCamelSpacedCase(this.apellidoM);
 	}
 
 	toJson() {

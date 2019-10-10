@@ -29,7 +29,8 @@ class ObjetoResponse {
 	constructor( code, ok, message, object, error ) {
 		this.code = code;
 		this.response = {
-			ok: ok
+			ok: ok,
+			status: code
 		};
 
 		if ( message ) {
