@@ -163,7 +163,7 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 	
 	}).then( () => {
 		
-		objetoResponse = new ObjetoResponse(400, true, `El ${ usuarioSingular } se creó, pero ya existía una cuenta de autenticación con su correo`, null, null);
+		objetoResponse = new ObjetoResponse(200, true, `El ${ usuarioSingular } se creó, pero ya existía una cuenta de autenticación con su correo`, null, null);
 		return authController.crearCuentaDeUsuario(usuario.correo, usuario.matricula, displayName);
 
 	}).then( cuentaDeUsuario => {
