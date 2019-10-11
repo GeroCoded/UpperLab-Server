@@ -1,5 +1,6 @@
 
 var userValidator = require('../controllers/userValidator');
+var utils = require('../controllers/utils');
 
 class SuperadminModel {
 
