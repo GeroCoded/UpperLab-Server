@@ -84,18 +84,19 @@ app.use('/topics', topicsRoutes);
 
 // 	console.log(`${ ticket.usuario.nombre } ${ ticket.usuario.apellidoP } acaba de crear un ticket.`);
 
-// 	const topic = 'admin';
+// 	const topic = 'admin';	
 // 	const payload = {
 // 		webpush: {
 // 			notification: {
 // 				title: '¡Nuevo ticket levantado!',
-// 				body: `${ ticket.usuario.nombre } ${ ticket.usuario.apellidoP } acaba de crear un ticket.`,
+// 				body: `${ ticket.usuario.nombre } ${ ticket.usuario.apellidoP } acaba de crear un ticket sobre el equipo ${ ticket.equipo.nombre} en el laboratorio ${ ticket.laboratorio }.`,
 // 				click_action: 'http://localhost:4200/admin/alumno/'+ticket.usuario.matricula
 // 			}
 // 		}
 // 	};
 
 // 	topicsCtrl.enviarMensajeATopic( payload, topic );
+// 	return true;
 // });
 
 

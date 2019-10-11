@@ -28,6 +28,26 @@ exports.getCarreras = function getCarreras() {
 	});
 };
 
+exports.getCarrera = function getCarrera( clave ) {
+	return new Promise( (resolve, reject) => {
+		var respuesta;
+		var carrera;
+
+		carrerasRef.doc( clave ).get().then( documentSnapshot => {
+			if ( !documentSnapshot.exists ) {
+				respuesta = new ObjetoRespoense(404, false, `No existe la carrera con la clave ${ clave }`, null, null);
+				return resolve( respuesta );
+			}
+
+			carrera = documentSnapshot.data();
+			
+			return resolve( new ObjetoResponse(200, true, null, {carrera}, null) );
+		}).catch( err => {
+			return reject( new ObjetoResponse(500, false, 'Error al consultar carrera', null, err) );
+		});
+	});
+};
+
 
 exports.getCuatrimestresDeCarrera = function getCuatrimestresDeCarrera( claveCarrera ) {
 
@@ -131,6 +151,24 @@ exports.eliminarCarrera = function eliminarCarrera( clave ) {
 		}).catch( error => {
 			console.log(error);
 			return reject( new ObjetoResponse(500, false, `Internal Server Error`, null, null) );
+		});
+	});
+};
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CUATRIMESTRES ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ //
+
+exports.actualizarCuatrimestre = function actualizarCuatrimestre( clave, cuatri, cuatrimestre ) {
+	return new Promise( (resolve, reject) => {
+
+		carrerasRef.doc( clave ).collection('cuatrimestres').doc( cuatri ).set( cuatrimestre ).then( () => {
+
+			return resolve( new ObjetoResponse(200, true, 'Cuatrimestre actualizado', null, null) );
+
+		}).catch( error => {
+			console.log(error);
+			return reject( new ObjetoResponse(400, false, `No se enviaron los datos completos`, null, null) );
 		});
 	});
 };
