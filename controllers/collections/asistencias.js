@@ -7,51 +7,31 @@ var crypto = require('crypto');
 var CodigoQRModel = require('../../models/codigoQRModel');
 
 
-exports.agregarAsistencia = function agregarAsistencia( alumno, codigoQR ) {
+exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedData ) {
 	
 	return new Promise( (resolve, reject) => {
 		
-		var respuesta = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
+		var respuesta = new ObjetoResponse(500, false, 'Internal Server Error. No se registro la asistencia.', null, null);
 		
 		var fecha = new Date;
 		var diaHoy = fecha.getDay();
-		diaHoy = 1; // 'lunes' PRUEBA
+		// diaHoy = 1; // 'lunes' PRUEBA
 		var mes = fecha.getMonth();
 		var anio = fecha.getFullYear();
 		var horaLlegada = fecha.getHours() * 60 + fecha.getMinutes();
-		horaLlegada = 420; // 7:25 A.M. PRUEBA
+		// horaLlegada = 420; // 7:25 A.M. PRUEBA
 
 		var fechaHoy = fecha.getDate() + '-' + mes + '-' + anio;
-		fechaHoy = '7-10-2019'; // '7-10-2019' PRUEBA
+		// fechaHoy = '7-10-2019'; // '7-10-2019' PRUEBA
 		
 		diaHoy = diaDeLaSemana( diaHoy );
 
-
-		// ====================================================== //
-		// =================== CODIFICANDO QR ================== //
-		// ====================================================== //
-		// Se convierte en cadena el JSON el objeto JSON que viene del codigoQR
-		var objetoJson = { laboratorio: "LS1", idEquipo: '30'};
-		var cadenaJson = JSON.stringify(objetoJson);
-		var key = crypto.createHash('sha256').update(String('upperlab')).digest('base64').substr(0, 32);
-		var iv = crypto.randomBytes(16);
-		
-		// console.log('Cadena Original: ');
-		// console.log(cadenaJson);
-
-		var encriptador = crypto.createCipheriv('aes-256-cbc', key, iv);
-		codigoQR = encriptador.update(cadenaJson, 'utf-8', 'hex');
-		// console.log(codigoQR);
-		codigoQR += encriptador.final('hex');
-
-		// console.log('Codigo QR encriptado: ');
-		// console.log(codigoQR);
-		
 		// ====================================================== //
 		// =================== DECODIFICANDO QR ================= //
 		// ====================================================== //
 
-		var codigoQRModel = new CodigoQRModel(codigoQR);
+		var codigoQRModel = new CodigoQRModel();
+		codigoQRModel.decrypt( encryptedData );
 		
 		// ====================================================== //
 		// ====================================================== //
@@ -117,7 +97,7 @@ exports.agregarAsistencia = function agregarAsistencia( alumno, codigoQR ) {
 		**/
 
 		if ( equiposLab.length === 0 ) {
-			respuesta = new ObjetoResponse(400, false, 'No tienes ninguna clase en este momento o no te han asignado un equipo para esta clase.', false, false);
+			respuesta = new ObjetoResponse(200, false, 'No tienes ninguna clase en este momento o no te han asignado un equipo para esta clase.', false, false);
 			return resolve( respuesta );
 		}
 
@@ -173,7 +153,7 @@ exports.agregarAsistencia = function agregarAsistencia( alumno, codigoQR ) {
 		});
 
 		if ( yaSeHabiaRegistrado ) {
-			respuesta = new ObjetoResponse(400, false, 'Ya has registrado tu asistencia previamente.', false, false);
+			respuesta = new ObjetoResponse(200, false, 'Ya has registrado tu asistencia previamente.', false, false);
 			return resolve( respuesta );
 		}
 
@@ -187,10 +167,11 @@ exports.agregarAsistencia = function agregarAsistencia( alumno, codigoQR ) {
 		var alumnoRef = firestore.collection('alumnos').doc( alumno.matricula );
 		
 		alumnoRef.update({ asistencias: alumno.asistencias }, {merge: true}).then( () => {
-			respuesta = new ObjetoResponse(200, true, 'Asistencia registrada con éxito.', false, false);
+			respuesta = new ObjetoResponse(201, true, 'Asistencia registrada con éxito.', false, false);
 			return resolve( respuesta );
 		}).catch( err => {
-			respuesta = new ObjetoResponse(200, true, 'Error al registrar asistencia', false, err);
+			console.log(err);
+			respuesta = new ObjetoResponse(500, false, 'Error al registrar asistencia', false, null);
 			return resolve( respuesta );
 		});
 	});
