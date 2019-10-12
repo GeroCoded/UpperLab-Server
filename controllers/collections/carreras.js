@@ -12,7 +12,7 @@ exports.getCarreras = function getCarreras() {
 
 		carrerasRef.get().then( querySnapshot => {
 			if ( querySnapshot.empty ) {
-				respuesta = new ObjetoRespoense(200, true, `No hay ninguna carrera registrada`, {carreras}, null);
+				respuesta = new ObjetoResponse(200, true, `No hay ninguna carrera registrada`, {carreras}, null);
 				return resolve( respuesta );
 			}
 
@@ -35,7 +35,7 @@ exports.getCarrera = function getCarrera( clave ) {
 
 		carrerasRef.doc( clave ).get().then( documentSnapshot => {
 			if ( !documentSnapshot.exists ) {
-				respuesta = new ObjetoRespoense(404, false, `No existe la carrera con la clave ${ clave }`, null, null);
+				respuesta = new ObjetoResponse(404, false, `No existe la carrera con la clave ${ clave }`, null, null);
 				return resolve( respuesta );
 			}
 
