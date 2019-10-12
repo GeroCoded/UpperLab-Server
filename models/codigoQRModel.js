@@ -25,6 +25,7 @@ class CodigoQRModel {
 		var decrypted = decipher.update(encryptedText);
 		decrypted = Buffer.concat([decrypted, decipher.final()]);
 		var decryptedJson = JSON.parse(decrypted.toString());
+		console.log(decryptedJson);
 		this.equipoID = decryptedJson.equipoID;
 		this.laboratorio = decryptedJson.laboratorio;
 	}

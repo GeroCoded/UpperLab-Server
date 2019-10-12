@@ -137,6 +137,11 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		 */
 
 
+		if ( !alumno.asistencias ) {
+			// Objeto vacío si las asistencias no existen.
+			alumno.asistencias = {};
+		}
+		
 		// Asistencias del alumno de la clase actual.
 		var asistenciasDelAlumno = alumno.asistencias[equipoUtilizado.claseID] || [];
 		
