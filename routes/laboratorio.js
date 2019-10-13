@@ -12,7 +12,7 @@ const laboratoriosRef = firestore.collection('laboratorios');
 // ====================================================== //
 // ========= Consultar laboratorio por edificio ========= //
 // ====================================================== //
-app.get('/edificio/:edificio',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
+app.get('/edificio/:edificio', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var edificio = req.params.edificio.toUpperCase();
 
@@ -20,6 +20,36 @@ app.get('/edificio/:edificio',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 	}).catch( objetoResponse => {
 		return res.status(objetoResponse.code).json(objetoResponse.response);
+	});
+		
+});
+
+
+// ====================================================== //
+// ========== Consultar todos los laboratorios ========== //
+// ====================================================== //
+app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+
+	console.log('GET - Consultando todos los laboratorios...');
+	var respuesta;
+	var laboratorios = [];
+
+	laboratoriosRef.get().then( querySnapshot => {
+
+		if ( querySnapshot.empty ) {
+			respuesta = new ObjetoResponse(200, true, 'No hay laboratorios registrados', {laboratorios}, null);
+			return res.status(respuesta.code).json(respuesta.response);
+		}
+
+		querySnapshot.forEach( laboratorio => {
+			laboratorios.push( laboratorio.data() );
+		});
+
+		respuesta = new ObjetoResponse(200, true, 'Laboratorios consultados con éxito', {laboratorios}, null);		
+		return res.status(respuesta.code).json(respuesta.response);
+	}).catch( err => {
+		respuesta = new ObjetoResponse(500, false, 'Error al consultar todos los laboratorios', {laboratorios}, err);
+		return res.status(respuesta.code).json(respuesta.response);
 	});
 		
 });

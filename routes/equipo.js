@@ -303,16 +303,33 @@ app.put('/componente', mdAuthentication.esAdminOSuper, (req, res) => {
 
 
 // ====================================================== //
-// ========== OBTENER INFO DE EQUIPO ENCRIPTADO ========= //
+// =================== ENCRIPTAR COOKIE ================= //
 // ====================================================== //
-app.get('/encryptedID/laboratorio/:clave/equipo/:equipoID', /*mdAuthentication.esAdmin,*/ (req, res) => {
+app.get('/encriptar/laboratorio/:clave/equipo/:equipoID', mdAuthentication.esAdmin, (req, res) => {
 	const laboratorio = req.params.clave;
 	const equipoID = req.params.equipoID;
 	const codigoQRModel = new CodigoQRModel();
 	return res.status(200).json({
-		encrypted: codigoQRModel.encrypt({ equipoID, laboratorio })
+		cookie: codigoQRModel.encrypt({ equipoID, laboratorio })
 	});
 });
+
+
+// ====================================================== //
+// ================= DESENCRIPTAR COOKIE ================ //
+// ====================================================== //
+app.post('/desencriptar', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (req, res) => {
+	const cookie = req.body.cookie;
+	const codigoQRModel = new CodigoQRModel();
+	codigoQRModel.decrypt(cookie);
+	return res.status( 200 ).json({
+		cookie: {
+			equipoID: codigoQRModel.equipoID,
+			laboratorio: codigoQRModel.laboratorio,
+		}
+	})
+});
+
 
 
 module.exports = app;
