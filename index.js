@@ -5,6 +5,21 @@ const bodyParser = require('body-parser');
 // const functions = require('firebase-functions');
 // const topicsCtrl = require('./controllers/topics');
 
+// Inicializar variables
+const app = express();
+
+
+// ---------------  IMPORTACIÓN DE SOCKET IO ----------------//
+const socketIO = require('socket.io');
+const http = require('http');
+
+// Creando servidor 
+let server = http.createServer(app);
+
+//IO es la comunicación directa del backend
+module.exports.io = socketIO(server);
+require('./sockets/socket-servidor');
+
 
 // FIREBASE ADMIN SDK
 const admin = require('firebase-admin');
@@ -13,10 +28,6 @@ admin.initializeApp({
 	credential: admin.credential.cert(serviceAccount),
 	databaseURL: 'https://upperlab-e81d9.firebaseio.com'
 });
-
-
-// Inicializar variables
-const app = express();
 
 
 // Middleware de express-fileupload
@@ -30,7 +41,7 @@ app.use( (req, res, next) => {
 	res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 	next();
 });
-  
+
 
 
 
@@ -101,6 +112,6 @@ app.use('/topics', topicsRoutes);
 
 
 // Escuchar peticiones del express
-app.listen(3000, '0.0.0.0', ()=>{
+server.listen(3000, '0.0.0.0', ()=>{
 	console.log('Express server puerto 3000: \x1b[32m%s\x1b[0m', 'online');
 });

@@ -53,6 +53,41 @@ app.get('/:matricula', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
 });
 
 
+// ====================================================== //
+// =========== OBTENER TODOS LOS TICKETS ================ //
+// ====================================================== //
+app.get('/' /*,mdAuthentication.esAdminOSuper */, (req, res) => {
+	var tickets = [];
+	ticketsRef.get().then( querySnapshot => {
+		if ( querySnapshot.empty ) {
+			return res.status(200).json({
+				ok: true,
+				message: 'No hay tickets',
+				tickets
+			});
+		}
+		var i = 0;
+		querySnapshot.forEach( ticket => {
+			tickets.push( ticket.data() );
+			tickets[i].id = ticket.id;
+			i++;
+		});
+		return res.status(200).json({
+			ok: true,
+			tickets
+		});
+	}).catch( err => {
+		console.log(err);
+		return res.status(500).json({
+			ok: false,
+			tickets,
+			error: err
+		});
+	});
+});
+
+
+
 
 // ====================================================== //
 // =================== CREAR TICKET ================== //
