@@ -122,7 +122,7 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 app.get('/asignaciones/matriculas/:claseID/:clave', /*mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 	console.log('Consultando alumnos con asignaciones por matriculas... ');
 	var respuesta = new ObjetoResponse(500, false, 'Internal Server Error', null, null);
-	var matriculas = req.query.matriculas;
+	var matriculas = req.query.matriculas || [];
 	var claseID = req.params.claseID;
 	var clave = req.params.clave;
 	var promesas = [];

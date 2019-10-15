@@ -6,6 +6,7 @@ var ServerResponse = require('http').ServerResponse;
 
 var authController = require('../controllers/authentication');
 var archivosController = require('../controllers/archivos');
+var gruposCtrl = require('../controllers/collections/grupos');
 var ObjetoResponse = require('../models/objetoResponse');
 var AlumnoModel = require('../models/alumno');
 var ProfesorModel = require('../models/profesor');
@@ -172,6 +173,11 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 		return authController.asignarRolAUsuario(cuentaDeUsuario.uid, customClaims)
 
 	}).then( () => {
+
+		if ( usuarioSingular === 'alumno' ) {
+			gruposCtrl.agregarOQuitarAlumno( usuario.grupo, usuario.matricula, true );
+		}
+
 		objetoResponse = new ObjetoResponse(201, true, `El ${ usuarioSingular } se ha creado con éxito`, null, null);
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
@@ -358,10 +364,14 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 	var objetoResponse = new ObjetoResponse( 500, false, 'Internal Server Error', null, null );
 
 	var usuario;
+	var docSnapshotHolder;
+	var grupoAnterior; // Guarda el grupo anterior del alumno
 
 	switch ( usuarioSingular ) {
 		case 'alumno':
 			usuario = new AlumnoModel( req.body.alumno );
+			grupoAnterior = req.query.grupoAnterior;
+			console.log('Grupo Anterior', grupoAnterior);
 			break;
 		case 'profesor':
 			usuario = new ProfesorModel( req.body.profesor );
@@ -383,10 +393,12 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 
 	objetoResponse.message = `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`;
 
-	firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get()
-	.then( querySnapshot => {
+	firestore.collection( coleccion ).doc(usuario.matricula).get()
+	.then( documentSnapshot => {
+		
+		docSnapshotHolder = documentSnapshot;
 
-		if ( querySnapshot.empty ) {
+		if ( !documentSnapshot.exists ) {
 			objetoResponse = new ObjetoResponse(400, false, `No existe el ${ usuarioSingular } con la matricula ${ usuario.matricula }`, null, null);
 			throw new Error(BREAK_MESSAGE);
 		}
@@ -400,6 +412,13 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 	}).then( () => {
 
 		objetoResponse = new ObjetoResponse(201, true, `El ${ usuarioSingular } ha sido modificado con éxito`, null, null);
+
+		if ( usuarioSingular === 'alumno' && grupoAnterior ) {
+			gruposCtrl.agregarOQuitarAlumno( grupoAnterior, usuario.matricula, false );
+			gruposCtrl.agregarOQuitarAlumno( usuario.grupo, usuario.matricula, true );
+		}
+
+		objetoResponse.consoleLog();
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	}).catch( err => {
@@ -467,8 +486,14 @@ exports.eliminarUsuario = function eliminarUsuario( coleccion, usuarioSingular, 
 		return authController.eliminarCuentaDeUsuario( usuario.uid );
 
 	}).then( () => {
-
+		
 		objetoResponse = new ObjetoResponse( 200, true, `El ${ usuarioSingular } '${ docSnapshotHolder.data().nombre }' ha sido eliminado satisfactoriamente`, null, null );
+		
+		if ( usuarioSingular === 'alumno' ) {
+			gruposCtrl.agregarOQuitarAlumno( docSnapshotHolder.data().grupo, matricula, false );
+		}
+		
+		objetoResponse.consoleLog();
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 				
 	}).catch( err => {
@@ -477,6 +502,7 @@ exports.eliminarUsuario = function eliminarUsuario( coleccion, usuarioSingular, 
 			console.log(objetoResponse.message);
 			objetoResponse.error = err;
 		}
+		objetoResponse.consoleLog();
 		return res.status(objetoResponse.code).json(objetoResponse.response);
 
 	});

@@ -169,7 +169,7 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 	
 	var clase = new ClaseModel( req.body.clase);
 	
-	console.log(clase);
+	// console.log(clase);
 	
 	if ( !clase.validarDatos() ) {
 		objetoResponse = new ObjetoResponse(400, false, 'No se enviaron todos los datos de la clase', null, null);
@@ -189,8 +189,8 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 
 		objetoResponse.message = 'Error al crear la clase ' + clase.claseID;
 	
-		console.log("========= CLASE TO JSON =========");
-		console.log(clase.toJson());
+		// console.log("========= CLASE TO JSON =========");
+		// console.log(clase.toJson());
 		
 		return clasesRef.doc(clase.claseID).set( clase.toJson() );
 		

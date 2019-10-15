@@ -1,8 +1,11 @@
 
-var firestore = require('firebase-admin').firestore();
+var admin = require('firebase-admin');
+var firestore = admin.firestore();
 var gruposRef = firestore.collection('grupos');
 var ObjetoResponse = require('../../models/objetoResponse');
 var BREAK_MESSAGE = require('../../config/config').BREAK_MESSAGE;
+
+var clasesCtrl = require('./clases');
 
 /**
  * Consulta todas la colección de grupos. Puede consultar grupos activos,
@@ -114,4 +117,51 @@ exports.eliminarGrupo = async function eliminarGrupo( grupoID ) {
 		console.log(err);
 		return new ObjetoResponse(500, false, 'Error inesperado al eliminar grupo', null, err);
 	}
+}
+
+/**
+ * Agrega o quita la matrícula del alumno de su grupo y sus clases.
+ * 
+ * @param grupoID String: ID del grupo del alumno
+ * @param matricula String: Matrícula del alumno
+ * @param agregar Boolean: `True` si se quiere agregar, `False` si se quiere quitar
+ */
+exports.agregarOQuitarAlumno = function agregarOQuitarAlumno( grupoID, matricula, agregar  ) {
+	if ( agregar ) {
+		console.log(`Agregando a alumno [${matricula}] a grupo [${grupoID}] y clases respectivas.`);
+	} else {
+		console.log(`Quitando a alumno [${matricula}] a grupo [${grupoID}] y clases respectivas.`);
+	}
+	
+	let batch = firestore.batch();
+
+	let grupoAlumnoRef = gruposRef.doc( grupoID );
+	if ( agregar ) {
+		batch.update( grupoAlumnoRef, { alumnos: admin.firestore.FieldValue.arrayUnion( matricula )});
+	} else {
+		batch.update( grupoAlumnoRef, { alumnos: admin.firestore.FieldValue.arrayRemove( matricula )});
+	}
+
+	clasesCtrl.consultarClasesPorGrupo( grupoID ).then( respuesta => {
+		const clases = respuesta.response.clases;
+
+		let ref;
+		clases.forEach( clase => {
+			ref = firestore.collection('clases').doc( clase.claseID );
+			if ( agregar ) {
+				batch.update( ref, { alumnos: admin.firestore.FieldValue.arrayUnion( matricula )});
+			} else {
+				batch.update( ref, { alumnos: admin.firestore.FieldValue.arrayRemove( matricula )});
+			}
+		})
+
+		return batch.commit();
+	}).then( respuesta => {
+		return;
+	}).catch( respuesta => {
+		console.log(respuesta);
+		respuesta.consoleLog();
+	})
+	
+
 }
