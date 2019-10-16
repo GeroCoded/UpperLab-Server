@@ -13,7 +13,7 @@ io.of('/admin').on('connection', (socket) => {
 
 	socket.on('guardarInfoCliente', (data) => {
 		console.log('Agregando admin...');
-		clients.addClient( socket.id, data.matricula, data.nombre );
+		clients.addClient( socket.id, data.matricula, data.nombre, data.rol );
 		console.log(clients.getClients());
 	});
 
@@ -50,7 +50,7 @@ io.of('/usuario').on('connection', (socket) => {
 
 	socket.on('guardarInfoCliente', (data) => {
 		console.log('Agregando usuario...');
-		clients.addClient( socket.id, data.matricula, data.nombre );
+		clients.addClient( socket.id, data.matricula, data.nombre, data.rol );
 		console.log(clients.getClients());
 	});
 
@@ -95,7 +95,7 @@ io.of('/chat').on('connection', (socket) => {
 	console.log('\x1b[32m%s\x1b[0m', 'Usuario en CHAT Conectado');
 
 	socket.on('guardarInfoCliente', (data) => {
-		console.log('Agregando usuario en CHAT...');
+		console.log('Agregando usuario en CHAT... ' + socket.id);
 		clients.addClient( socket.id, data.matricula, data.nombre, data.rol );
 		console.log(clients.getClients());
 	});
@@ -163,7 +163,7 @@ io.of('/chat').on('connection', (socket) => {
 	 */
 	socket.on('disconnect', (reason) => {
 		
-		const clienteDesconectado = clients.deleteClientBySocketId( `${ socket.id }` );
+		const clienteDesconectado = clients.deleteClientBySocketId( socket.id );
 		console.log(clienteDesconectado);
 		if ( clienteDesconectado.rol === ROLES.ALUMNO || clienteDesconectado.rol === ROLES.PROFESOR ) {
 			clienteDesconectado.rooms.forEach( room => {
