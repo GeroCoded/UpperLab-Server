@@ -110,14 +110,7 @@ io.of('/chat').on('connection', (socket) => {
 			clients.saveRoomsOfClient( socket.id, data.rooms );
 			
 			data.rooms.forEach( room => {
-				const mensaje = {
-					matricula: 'WOLFBOT1423',
-					nombre: 'Wolf Bot',
-					mensaje: `${ data.nombre } ingresó al chat`,
-					timestamp: Date.now().toString(),
-					img: 'assets/images/users/wolf-bot.png',
-					sala: room
-				}
+				const mensaje = mensajeBot(`${ data.nombre } ingresó al chat`, room);
 				socket.to(mensaje.sala).emit('recibirMensaje', mensaje);
 	
 			});

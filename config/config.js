@@ -16,3 +16,5 @@ module.exports.ROLES = {
 	ADMINISTRADOR: 3,
 	SUPERADMINISTRADOR: 4
 };
+
+module.exports.MATRICULA_WOLFBOT = 'WOLFBOT1423';

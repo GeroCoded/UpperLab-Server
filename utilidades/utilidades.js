@@ -1,3 +1,6 @@
+const { MATRICULA_WOLFBOT } =  require('../config/config');
+
+
 const crearMensaje = (nombre, mensaje) => {
 	return {
 		nombre,
@@ -8,7 +11,7 @@ const crearMensaje = (nombre, mensaje) => {
 
 const mensajeBot = ( mensaje, sala ) => {
 	return {
-		matricula: 'WOLFBOT1423',
+		matricula: MATRICULA_WOLFBOT,
 		nombre: 'Wolf Bot',
 		mensaje: `${ mensaje }`,
 		timestamp: Date.now().toString(),
