@@ -6,6 +6,18 @@ const crearMensaje = (nombre, mensaje) => {
 	}
 }
 
+const mensajeBot = ( mensaje, sala ) => {
+	return {
+		matricula: 'WOLFBOT1423',
+		nombre: 'Wolf Bot',
+		mensaje: `${ mensaje }`,
+		timestamp: Date.now().toString(),
+		img: 'assets/images/users/wolf-bot.png',
+		sala: sala
+	};
+}
+
 module.exports = {
-	crearMensaje
+	crearMensaje,
+	mensajeBot
 }
