@@ -2,6 +2,7 @@ var express = require('express');
 var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
+const ticketsCtrl = require('../controllers/collections/tickets');
 
 var app = express();
 
@@ -130,6 +131,24 @@ app.put('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 			ok: false,
 			error: err
 		});
+	});
+});
+
+// ====================================================== //
+// =================== ACTUALIZAR CHAT ================== //
+// ====================================================== //
+app.put('/:id/chat', mdAuthentication.esAdminOAlumnoOProfesor, (req, res)=>{
+	var ticket = req.body.ticket;
+	var id = req.params.id;
+
+	console.log('PUT - Actualizando chat ' + ticket.titulo + ' (' + id + ')');
+
+	ticketsCtrl.updateChat( id, ticket ).then( respuesta => {
+		respuesta.consoleLog();
+		return res.status( respuesta.code ).json( respuesta.response );
+	}).catch( respuesta => {
+		respuesta.consoleLog();
+		return res.status( respuesta.code ).json( respuesta.response );
 	});
 });
 

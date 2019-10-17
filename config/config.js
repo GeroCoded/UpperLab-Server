@@ -8,3 +8,13 @@ module.exports.MENSAJES_DE_ERROR = {
 };
 
 module.exports.BREAK_MESSAGE = 'BREAK';
+
+// WARNING: NO CAMBIAR LA CONFIGURACIÓN DE ROLES.
+module.exports.ROLES = {
+	ALUMNO: 1,
+	PROFESOR: 2,
+	ADMINISTRADOR: 3,
+	SUPERADMINISTRADOR: 4
+};
+
+module.exports.MATRICULA_WOLFBOT = 'WOLFBOT1423';
