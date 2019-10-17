@@ -13,7 +13,7 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		
 		var respuesta = new ObjetoResponse(500, false, 'Internal Server Error. No se registro la asistencia.', null, null);
 		
-		var fecha = new Date;
+		var fecha = new Date();
 		var diaHoy = fecha.getDay();
 		// diaHoy = 1; // 'lunes' PRUEBA
 		var mes = fecha.getMonth();
