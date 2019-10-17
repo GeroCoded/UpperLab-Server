@@ -2,8 +2,6 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
 const bodyParser = require('body-parser');
-// const functions = require('firebase-functions');
-// const topicsCtrl = require('./controllers/topics');
 
 // Inicializar variables
 const app = express();
@@ -86,32 +84,9 @@ app.use('/ticket', ticketRoutes);
 app.use('/grupos', gruposRoutes);
 app.use('/topics', topicsRoutes);
 
-
-// exports.api = functions.https.onRequest(app);
-
-// exports.levantamientoDeTicket = functions.firestore.document('tickets/{ticketId}').onCreate( (snap, change) => {
-
-// 	const ticket = snap.data();
-
-// 	console.log(`${ ticket.usuario.nombre } ${ ticket.usuario.apellidoP } acaba de crear un ticket.`);
-
-// 	const topic = 'admin';	
-// 	const payload = {
-// 		webpush: {
-// 			notification: {
-// 				title: '¡Nuevo ticket levantado!',
-// 				body: `${ ticket.usuario.nombre } ${ ticket.usuario.apellidoP } acaba de crear un ticket sobre el equipo ${ ticket.equipo.nombre} en el laboratorio ${ ticket.laboratorio }.`,
-// 				click_action: 'http://localhost:4200/admin/alumno/'+ticket.usuario.matricula
-// 			}
-// 		}
-// 	};
-
-// 	topicsCtrl.enviarMensajeATopic( payload, topic );
-// 	return true;
-// });
-
+const port = process.env.PORT || 3000;
 
 // Escuchar peticiones del express
-server.listen(3000, '0.0.0.0', ()=>{
-	console.log('Express server puerto 3000: \x1b[32m%s\x1b[0m', 'online');
+server.listen(port, '0.0.0.0', ()=>{
+	console.log(`Express server puerto ${port}: \x1b[32m%s\x1b[0m`, 'online');
 });
