@@ -66,6 +66,7 @@ var plantillaRoutes = require('./routes/plantilla');
 var ticketRoutes = require('./routes/ticket');
 var gruposRoutes = require('./routes/grupos');
 var topicsRoutes = require('./routes/topics');
+var clasificacionesRoutes = require('./routes/clasificaciones');
 
 app.use('/alumno', alumnoRoutes);
 app.use('/profesor', profesorRoutes);
@@ -83,6 +84,7 @@ app.use('/plantilla', plantillaRoutes);
 app.use('/ticket', ticketRoutes);
 app.use('/grupos', gruposRoutes);
 app.use('/topics', topicsRoutes);
+app.use('/clasificaciones', clasificacionesRoutes);
 
 const port = process.env.PORT || 3000;
 
