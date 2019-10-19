@@ -2,7 +2,6 @@ const express = require('express');
 
 const mdAuthentication = require('./middlewares/authentication');
 const clasificacionesCtrl = require('../controllers/collections/clasificaciones');
-const ObjetoResponse = require('../models/objetoResponse');
 
 const app = express();
 
@@ -19,7 +18,7 @@ const app = express();
  */
 
 
-app.get('/', mdAuthentication.esAdmin, (req, res) => {
+app.get('/', mdAuthentication.esAdminOSuperOAlumno, (req, res) => {
 	clasificacionesCtrl.getClasificaciones().then( respuesta => {
 		return res.status( respuesta.code ).json( respuesta.response );
 	}).catch( respuesta => {

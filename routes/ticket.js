@@ -14,7 +14,9 @@ const ticketsRef = firestore.collection('tickets');
 // ====================================================== //
 // =========== OBTENER TICKETS POR MATRICULA ============ //
 // ====================================================== //
-app.get('/:matricula', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
+app.get('/usuario/:matricula', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (req, res) => {
+
+	console.log('GET - Consultando Ticket por matrícula');
 
 	var matricula = req.params.matricula.toUpperCase();
 	var tickets = [];
@@ -55,17 +57,77 @@ app.get('/:matricula', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
 
 
 // ====================================================== //
+// =============== OBTENER TICKETS POR ID =============== //
+// ====================================================== //
+app.get('/:ticketID', mdAuthentication.esAdminOSuper, (req, res) => {
+
+	console.log('GET - Consultando Ticket por su ID');
+
+	var respuesta;
+	var ticketID = req.params.ticketID;
+	var ticket = {};
+
+	console.log(ticketID);
+
+	ticketsRef.doc(ticketID).get().then( documentSnapshot => {
+
+		if ( !documentSnapshot.exists ) {
+			respuesta = new ObjetoResponse( 404, false, 'No exite el ticket con el id ' + ticketID, { ticket }, null);
+			return res.status(respuesta.code).json(respuesta.response);
+		}
+
+		
+		ticket = documentSnapshot.data();
+		ticket.id = documentSnapshot.id;
+
+		respuesta = new ObjetoResponse( 200, true, null, { ticket }, null);
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+		
+	}).catch( err => {
+
+		console.log(err);
+		respuesta = new ObjetoResponse( 500, false, 'Error al consultar ticket', { ticket }, null);
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+
+	});
+});
+
+
+// ====================================================== //
 // =========== OBTENER TODOS LOS TICKETS ================ //
 // ====================================================== //
-app.get('/' /*,mdAuthentication.esAdminOSuper */, (req, res) => {
+/**
+ * Possible Query Params:
+ *  - laboratorio
+ *  - equipo
+ */
+app.get('/', mdAuthentication.esAdminOSuper, (req, res) => {
+	console.log('GET - Consultando todos los tickets');
+	var respuesta;
+
+	// Query Params
+	var laboratorio = req.query.laboratorio;
+	var equipo = req.query.equipo;
 	var tickets = [];
-	ticketsRef.get().then( querySnapshot => {
+	
+	// Query
+	var query = ticketsRef;
+	
+	if ( laboratorio ) {
+		console.log(laboratorio);
+		query = query.where('laboratorio', '==', laboratorio);
+	}
+	if ( equipo ) {
+		console.log(equipo);
+		query = query.where('equipo.id', '==', equipo);
+	}
+
+	query.get().then( querySnapshot => {
 		if ( querySnapshot.empty ) {
-			return res.status(200).json({
-				ok: true,
-				message: 'No hay tickets',
-				tickets
-			});
+			respuesta = new ObjetoResponse( 200, true, 'No hay tickets registrados', { tickets }, null );
+			return res.status(respuesta.code).json(respuesta.response);
 		}
 		var i = 0;
 		querySnapshot.forEach( ticket => {
@@ -73,17 +135,15 @@ app.get('/' /*,mdAuthentication.esAdminOSuper */, (req, res) => {
 			tickets[i].id = ticket.id;
 			i++;
 		});
-		return res.status(200).json({
-			ok: true,
-			tickets
-		});
+
+		respuesta = new ObjetoResponse( 200, true, null, { tickets }, null );
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
 	}).catch( err => {
 		console.log(err);
-		return res.status(500).json({
-			ok: false,
-			tickets,
-			error: err
-		});
+		respuesta = new ObjetoResponse( 500, false, 'Error al consultar todos los tickets', { tickets }, null );
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
 	});
 });
 
@@ -144,6 +204,22 @@ app.put('/:id/chat', mdAuthentication.esAdminOAlumnoOProfesor, (req, res)=>{
 	console.log('PUT - Actualizando chat ' + ticket.titulo + ' (' + id + ')');
 
 	ticketsCtrl.updateChat( id, ticket ).then( respuesta => {
+		respuesta.consoleLog();
+		return res.status( respuesta.code ).json( respuesta.response );
+	}).catch( respuesta => {
+		respuesta.consoleLog();
+		return res.status( respuesta.code ).json( respuesta.response );
+	});
+});
+
+
+// ====================================================== //
+// ================== ACTUALIZAR ESTADO ================= //
+// ====================================================== //
+app.put('/estado/:id', mdAuthentication.esAdminOSuper, (req, res) => {
+	console.log('PUT - Actualizando estado de ticket');
+
+	ticketsCtrl.updateEstado( req.params.id, req.body.estado ).then( respuesta => {
 		respuesta.consoleLog();
 		return res.status( respuesta.code ).json( respuesta.response );
 	}).catch( respuesta => {
