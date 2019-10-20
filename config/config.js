@@ -17,4 +17,18 @@ module.exports.ROLES = {
 	SUPERADMINISTRADOR: 4
 };
 
+module.exports.ESTADOS_TICKET = {
+	NUEVO: 1,
+	EN_PROCESO: 2,
+	RESUELTO: 3,
+	NO_RESUELTO: 4,
+	CANCELADO: 5
+};
+
+module.exports.ESTADOS_ENCUESTA = {
+	NO_DISPONIBLE: 0,
+	DISPONIBLE: 1,
+	CONTESTADA: 2
+};
+
 module.exports.MATRICULA_WOLFBOT = 'WOLFBOT1423';
