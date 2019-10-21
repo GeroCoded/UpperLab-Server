@@ -439,12 +439,12 @@ function actualizarAsignaciones( asignacion ) {
 }
 
 // ====================================================== //
-// ======= Consultar alumnos por grupo (y carrera) ====== //
+// ============= Consultar alumnos por grupo ============ //
 // ====================================================== //
-app.get('/:generacion/:carrera/:grupo', mdAuthentication.esAdminOSuper, (req, res)=>{
-	var gen_carrera_grupo = req.params.generacion + '-' + req.params.carrera + '-' + req.params.grupo;
+app.get('/grupo/:grupoID', mdAuthentication.esAdminOSuper, (req, res)=>{
+	
 
-	alumnosRef.where('grupo', '==', gen_carrera_grupo).get()
+	alumnosRef.where('grupo', '==', req.params.grupoID).get()
 	.then( snapshot => {
 
 		var alumnos = [];

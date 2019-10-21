@@ -22,6 +22,27 @@ exports.suscribirATopic = function suscribirATopic( registrationTokens, topic ) 
 	
 };
 
+exports.desuscribirATopic = function desuscribirATopic( registrationTokens, topic ) {
+	
+	return new Promise( (resolve, reject) => {
+
+		// Subscribe the devices corresponding to the registration tokens to the
+		// topic.
+		admin.messaging().unsubscribeFromTopic(registrationTokens, topic).then( (response) => {
+			// See the MessagingTopicManagementResponse reference documentation
+			// for the contents of response.
+			console.log('Successfully unsubscribed to topic:', response);
+			return resolve();
+		})
+		.catch( (error) => {
+			console.log('Error subscribing to topic:', error);
+			return reject(error);
+		});
+
+	});
+	
+};
+
 
 exports.enviarMensajeATopic = function enviarMensajeATopic( payload, topic ) {
 
@@ -36,4 +57,4 @@ exports.enviarMensajeATopic = function enviarMensajeATopic( payload, topic ) {
 	}).catch((error) => {
 		console.log('Error sending message:', error);
 	});
-}
+};

@@ -59,7 +59,7 @@ app.get('/usuario/:matricula', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (
 // ====================================================== //
 // =============== OBTENER TICKETS POR ID =============== //
 // ====================================================== //
-app.get('/:ticketID', mdAuthentication.esAdminOSuper, (req, res) => {
+app.get('/:ticketID', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (req, res) => {
 
 	console.log('GET - Consultando Ticket por su ID');
 
@@ -72,7 +72,7 @@ app.get('/:ticketID', mdAuthentication.esAdminOSuper, (req, res) => {
 	ticketsRef.doc(ticketID).get().then( documentSnapshot => {
 
 		if ( !documentSnapshot.exists ) {
-			respuesta = new ObjetoResponse( 404, false, 'No exite el ticket con el id ' + ticketID, { ticket }, null);
+			respuesta = new ObjetoResponse( 404, false, 'No existe el ticket con el id ' + ticketID, { ticket }, null);
 			return res.status(respuesta.code).json(respuesta.response);
 		}
 
@@ -204,6 +204,22 @@ app.put('/:id/chat', mdAuthentication.esAdminOAlumnoOProfesor, (req, res)=>{
 	console.log('PUT - Actualizando chat ' + ticket.titulo + ' (' + id + ')');
 
 	ticketsCtrl.updateChat( id, ticket ).then( respuesta => {
+		respuesta.consoleLog();
+		return res.status( respuesta.code ).json( respuesta.response );
+	}).catch( respuesta => {
+		respuesta.consoleLog();
+		return res.status( respuesta.code ).json( respuesta.response );
+	});
+});
+
+
+// ====================================================== //
+// ================= ACTUALIZAR ENCUESTA ================ //
+// ====================================================== //
+app.put('/encuesta/:id', mdAuthentication.esAlumnoOProfesor, (req, res) => {
+	console.log('PUT - Actualizando encuesta de ticket');
+
+	ticketsCtrl.setEncuesta( req.params.id, req.body.encuesta ).then( respuesta => {
 		respuesta.consoleLog();
 		return res.status( respuesta.code ).json( respuesta.response );
 	}).catch( respuesta => {

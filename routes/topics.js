@@ -5,7 +5,7 @@ const topicsCtrl = require('../controllers/topics');
 const app = express();
 
 
-app.post('/', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
+app.post('/', mdAuthentication.esAdminOSuper, (req, res) => {
 	
 	topicsCtrl.suscribirATopic( req.body.tokens, req.body.topic ).then( () => {
 		return res.status(200).json({
@@ -21,6 +21,25 @@ app.post('/', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
 		});
 	});
 });
+
+app.post('/desuscribirse/admin', mdAuthentication.esAdminOSuper, (req, res) => {
+	
+	topicsCtrl.desuscribirATopic( req.body.tokens, req.body.topic ).then( () => {
+		return res.status(200).json({
+			status: 200,
+			message: 'Desuscripción exitosa'
+		});
+	}).catch( error => {
+		console.log(error);
+		return res.status(500).json({
+			status: 500,
+			message: 'Error unsubscribing to topic',
+			error
+		});
+	});
+});
+
+
 
 
 
