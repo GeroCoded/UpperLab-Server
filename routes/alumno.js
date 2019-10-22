@@ -129,6 +129,11 @@ app.get('/asignaciones/matriculas/:claseID/:clave', /*mdAuthentication.esAdminOS
 	var promesas = [];
 	var alumnos = [];
 
+	console.log(matriculas);
+	if ( !Array.isArray(matriculas) ) {
+		matriculas = [matriculas];
+	}
+	console.log(matriculas);
 	matriculas.forEach( matricula => {
 		promesas.push( userCRUD.consultarUsuarioPorMatricula( COLECCION, matricula, USUARIO_SINGULAR) );
 	});
@@ -234,7 +239,7 @@ function asignarEquipo( asignacion ) {
 		var asignacionID = `${asignacion.clase.id}-${asignacion.clase.dia}-${asignacion.clase.laboratorio}`;
 		
 		if ( asignacion.tipo === 'temporal' ) {
-			asignacionID += `-temporal`
+			asignacionID += `-temporal`;
 		}
 
 		const asignarSet = alumnosRef.doc( asignacion.alumno.matricula )
@@ -263,7 +268,7 @@ app.delete('/asignaciones/:claseID/:diaLaboratorio', /*mdAuthentication.esAdminO
 		console.log(err);
 		err.consoleLog();
 		return res.status(err.code).json(err.response);
-	})
+	});
 });
 
 
@@ -401,7 +406,7 @@ app.put('/asignaciones', /*mdAuthentication.esAdminOSuper,*/ (req, res) => {
 	}).catch( err => {
 		err.consoleLog();
 		return res.status(err.code).json(err.response);
-	})
+	});
 });
 
 
