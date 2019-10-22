@@ -196,6 +196,30 @@ exports.esAdminOAlumnoOProfesor = function esAdminOAlumnoOProfesor(req, res, nex
 	});
 };
 
+
+exports.esAdminOSuperOProfesor = function esAdminOSuperOProfesor(req, res, next) {
+	
+	var token = req.query.token;
+
+	if( token === null || token === undefined ) {
+		return res.status(401).json(PERMISOS_INSUFICIENTES);
+	}
+
+	return auth.verifyIdToken(token).then( (claims)=>{
+		if ( claims.isAdmin || claims.isSuperadmin || claims.isProfesor ) {
+			return next();
+		} else {
+			return res.status(401).json(PERMISOS_INSUFICIENTES);
+		}
+	}).catch( err => {
+		return res.status(401).json({
+			ok: false,
+			message: 'Sesión caducada.',
+			errors: err
+		});
+	});
+};
+
 exports.esAdminOSuperOAlumnoOProfesor = function esAdminOSuperOAlumnoOProfesor(req, res, next) {
 	
 	var token = req.query.token;

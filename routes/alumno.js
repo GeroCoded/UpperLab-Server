@@ -1,5 +1,6 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
+var admin = require('firebase-admin');
+var firestore = admin.firestore();
 
 var mdAuthentication = require('./middlewares/authentication');
 var userCRUD = require('../controllers/userCRUD');
@@ -511,5 +512,63 @@ app.delete('/:matricula', mdAuthentication.esAdminOSuper, (req, res) => {
 
 });
 
+
+// ====================================================== //
+// =================== Agregar Sanción ================== //
+// ====================================================== //
+app.post('/:matricula/sancion', mdAuthentication.esAdminOSuperOProfesor, (req, res) => {
+
+	var respuesta;
+	
+	const sancion = req.body.sancion;
+	const matricula = req.params.matricula.toUpperCase();
+	
+	console.log('POST - Agregando sancion de alumno ' + matricula);
+
+	if ( !sancion ) {
+		respuesta = new ObjetoResponse( 400, false, 'No se envió la sanción', null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+	}
+	
+	alumnosRef.doc( matricula ).update({
+		sanciones: admin.firestore.FieldValue.arrayUnion(sancion)
+	}).then( () => {
+		respuesta = new ObjetoResponse( 201, true, '¡Sanción agregada!', null, null );
+		return res.status( respuesta.code ).json( respuesta.response );
+	}).catch( err => {
+		console.log(err);
+		respuesta = new ObjetoResponse( 400, false, `El alumno con la matrícula '${ matricula }' no existe.`, null, null );
+		return res.status( respuesta.code ).json( respuesta.response );
+	});
+	
+});
+
+
+// ====================================================== //
+// ================ Actualizar Sanciones ================ //
+// ====================================================== //
+app.put('/:matricula/sancion', mdAuthentication.esAdminOSuperOProfesor, (req, res) => {
+	var respuesta;
+	
+	const sanciones = req.body.sanciones;
+	const matricula = req.params.matricula.toUpperCase();
+	
+	console.log('PUT - Actualizando sanciones de alumno ' + matricula);
+	
+	if ( !sanciones ) {
+		respuesta = new ObjetoResponse( 400, false, 'No se enviaron la sanciones', null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+	}
+	
+	alumnosRef.doc( matricula ).update({ sanciones }).then( () => {
+		respuesta = new ObjetoResponse( 200, true, '¡Sanciones actualizadas!', null, null );
+		return res.status( respuesta.code ).json( respuesta.response );
+	}).catch( err => {
+		console.log(err);
+		respuesta = new ObjetoResponse( 400, false, `El alumno con la matrícula '${ matricula }' no existe.`, null, null );
+		return res.status( respuesta.code ).json( respuesta.response );
+	});
+	
+});
 
 module.exports = app;

@@ -129,7 +129,7 @@ app.get('/conHorario/:laboratorio', mdAuthentication.esAdminOSuper, (req, res)=>
 // ====================================================== //
 // =============== CONSULTAR CLASE POR ID =============== //
 // ====================================================== //
-app.get('/:claseID', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/:claseID',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 	
 	let claseID = req.params.claseID;
 
