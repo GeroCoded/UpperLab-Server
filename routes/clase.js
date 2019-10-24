@@ -4,7 +4,7 @@ var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
 var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
 var ClaseModel = require('../models/clase');
-
+var clasesCtrl = require('../controllers/collections/clases');
 var app = express();
 
 const clasesRef = firestore.collection('clases');
@@ -157,6 +157,22 @@ app.get('/:claseID',/* mdAuthentication.esAdminOSuper,*/ (req, res)=>{
 		});
 	});
 		
+});
+
+
+// ====================================================== //
+// ================= CLASES DEL PROFESOR ================ //
+// ====================================================== //
+app.get('/profesor/:matricula', /*mdAuthentication.esAdminOSuperOProfesor,*/ (req, res) => {
+
+	clasesCtrl.consultarClasesDelProfesor(req.params.matricula).then( respuesta => {
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+	}).catch( respuesta => {
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+	});
+	
 });
 
 

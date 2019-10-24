@@ -27,4 +27,32 @@ exports.consultarClasesPorGrupo = function consultarClasesPorGrupo( grupoID ) {
 			return reject( new ObjetoResponse(500, false, 'Error al consultar clases', null, null) );
 		});
 	});
-}
+};
+
+
+exports.consultarClasesDelProfesor = function consultarClasesDelProfesor( matricula ) {
+	return new Promise( (resolve, reject) => {
+		
+		var respuesta = new ObjetoResponse(500, false, 'Error al consultar clase del profesor', null, null);
+		var clases = [];
+		clasesRef.where('profesorID', '==', matricula).get().then( querySnapshot => {
+
+			if ( querySnapshot.empty ) {
+				respuesta = new ObjetoResponse(200, false, `El profesor con la matrícula ${ matricula } no tiene clases`, null, null);
+				return resolve(respuesta);
+			}
+
+			querySnapshot.forEach( clase => {
+				clases.push( clase.data() );
+			});
+
+			respuesta = new ObjetoResponse(200, true, `Clases del profesor con la matrícula ${ matricula } consultadas con éxito`, {clases}, null);
+			return resolve(respuesta);
+			
+		}).catch( error => {
+			console.log(error);
+			return reject(respuesta);
+		});
+		
+	});
+};
