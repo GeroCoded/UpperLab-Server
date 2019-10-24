@@ -64,3 +64,66 @@ exports.consultarUsosNoAutorizados = function consultarUsosNoAutorizados() {
 	});
 };
 
+
+exports.consultarFormatoDePracticas = function consultarFormatoDePracticas() {
+	
+	return new Promise( (resolve, reject) => {
+
+		var respuesta = new ObjetoResponse(500, false, 'Error al consultar formato de prácticas.', null, null);
+		var formato = {};
+		firestore.collection('bitacoras').doc('FORMATO-PRACTICAS').get().then( documentSnapshot => {
+			if( !documentSnapshot.exists ) {
+				respuesta = new ObjetoResponse(200, false, 'No hay ningún formato de prácticas', { formato }, null);
+				return resolve(respuesta);
+			}
+			
+			formato = documentSnapshot.data();
+			
+			respuesta = new ObjetoResponse(200, true, 'Usos no autorizados consultados exitosamente.', { formato }, null);
+			return resolve(respuesta);
+		}).catch( error => {
+			console.log(error);
+			return reject(respuesta);
+		});
+		
+	});
+};
+
+exports.actualizarFormatoDePracticas = function actualizarFormatoDePracticas(inputs) {
+	
+	return new Promise( (resolve, reject) => {
+
+		var respuesta = new ObjetoResponse(500, false, 'Error al actualizar formato de prácticas.', null, null);
+		var formato = {};
+		firestore.collection('bitacoras').doc('FORMATO-PRACTICAS').set( {inputs}, {merge: true} ).then( () => {
+			respuesta = new ObjetoResponse(200, true, 'Formato actualizado exitosamente.', { formato }, null);
+			return resolve(respuesta);
+		}).catch( error => {
+			console.log(error);
+			return reject(respuesta);
+		});
+		
+	});
+};
+
+
+
+exports.registrarPractica = function registrarPractica( registro ) {
+
+	return new Promise( (resolve, reject) => {
+
+		var respuesta = new ObjetoResponse(500, false, 'Error al registrar práctica de laboratorio', null, null);
+		
+		firestore.collection('bitacoras').doc('PRACTICAS')
+		.set({ registros: admin.firestore.FieldValue.arrayUnion(registro) }, {merge: true})
+		.then( () => {
+			
+			respuesta = new ObjetoResponse(201, true, 'Práctica de laboratorio registrado con éxito', null, null);
+			return resolve(respuesta);
+
+		}).catch( error => {
+			console.log(error);
+			return reject( respuesta );
+		});
+	});
+};
