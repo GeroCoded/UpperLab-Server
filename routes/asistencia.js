@@ -43,26 +43,4 @@ app.post('/', mdAuthentication.esAlumno, (req, res) => {
 });
 
 
-app.post('/encrypt', (req, res) => {
-	const json = req.body.data;
-	const codigoQRModel = new CodigoQRModel();
-	return res.status( 200 ).json({
-		encrypted: codigoQRModel.encrypt(json)
-	})
-});
-
-
-app.post('/decrypt', (req, res) => {
-	const encrypted = req.body.encrypted;
-	const codigoQRModel = new CodigoQRModel();
-	codigoQRModel.decrypt(encrypted);
-	return res.status( 200 ).json({
-		decrypted: {
-			equipoID: codigoQRModel.equipoID,
-			laboratorio: codigoQRModel.laboratorio,
-		}
-	})
-});
-
-
 module.exports = app;

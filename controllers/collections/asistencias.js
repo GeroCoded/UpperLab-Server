@@ -1,7 +1,10 @@
 
-var firestore = require('firebase-admin').firestore();
+var admin = require('firebase-admin');
+var firestore = admin.firestore();
 var ObjetoResponse = require('../../models/objetoResponse');
-var crypto = require('crypto');
+
+// Controllers
+const bitacorasCtrl = require('./bitacoras');
 
 // Modelos
 var CodigoQRModel = require('../../models/codigoQRModel');
@@ -15,14 +18,14 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		
 		var fecha = new Date();
 		var diaHoy = fecha.getDay();
-		// diaHoy = 1; // 'lunes' PRUEBA
+		diaHoy = 3; // 'lunes' PRUEBA
 		var mes = fecha.getMonth();
 		var anio = fecha.getFullYear();
 		var horaLlegada = fecha.getHours() * 60 + fecha.getMinutes();
-		// horaLlegada = 420; // 7:25 A.M. PRUEBA
+		horaLlegada = 436; // 7:16 A.M. PRUEBA
 
 		var fechaHoy = fecha.getDate() + '-' + mes + '-' + anio;
-		// fechaHoy = '7-10-2019'; // '7-10-2019' PRUEBA
+		fechaHoy = '30-9-2019'; // '28-9-2019' PRUEBA
 		
 		diaHoy = diaDeLaSemana( diaHoy );
 
@@ -37,7 +40,7 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		// ====================================================== //
 		// ====================================================== //
 		
-		/**
+		/*
 		 * 
 		 * 1.- Recorrer las asignaciones del Alumno en busca de la clase que tiene
 		 * 	   en este momento.
@@ -62,59 +65,61 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		**/
 		
 
-		/**
+		/*
 		 * 1.- Recorrer las asignaciones del Alumno en busca de la clase que tiene
 		 * 	   en este momento.
 		 */
 
-		var equiposLab = [];
-		
-		Object.keys( alumno.asignaciones ).forEach( key => {
+		let asignacionActual;
 
-			const asignacion = alumno.asignaciones[key];
+		if ( !alumno.asignaciones ) {
+			alumno.asignaciones = {};
+		}
+		console.log(alumno.asignaciones);
 
-			if ( diaHoy === asignacion.clase.dia ) {
-				
-				// ¿La hora de llegada el alumno está dentro del tiempo de la clase?
-				if ( asignacion.clase.horaInicial <= horaLlegada && horaLlegada < asignacion.clase.horaFinal ) {
-				
-					// 3.- Se obtienen los equipoID's y los laboratorios.
-					var equipoLab = { 
-						equipoID: asignacion.equipo.id,
-						laboratorio: asignacion.clase.laboratorio,
-						claseID: asignacion.clase.id,
-						horaInicial: asignacion.clase.horaInicial
-					};
-					equiposLab.push( equipoLab );
+		for (const key in alumno.asignaciones) {
+			if (alumno.asignaciones.hasOwnProperty(key)) {
+
+				console.log(key);
+
+				const asignacion = alumno.asignaciones[key];
+
+				if ( diaHoy === asignacion.clase.dia ) {
+					
+					// ¿La hora de llegada el alumno está dentro del tiempo de la clase?
+					if ( asignacion.clase.horaInicial <= horaLlegada && horaLlegada < asignacion.clase.horaFinal ) {
+						// 3.- Se obtienen los equipoID's y los laboratorios.
+						asignacionActual = asignacion;
+						console.log('Rompiendo...');
+						break;
+					}
 				}
 			}
+		}
 
-		});
-
-		/** 
+		/*
 		 * 2.- Si no tiene ninguna clase AHORA --> Error('No tienes ninguna clase
 		 * en este momento.');
-		**/
+		 */
 
-		if ( equiposLab.length === 0 ) {
+		if ( asignacionActual === undefined ) {
+			bitacorasCtrl.registrarUsoNoAutorizado( alumno, codigoQRModel.laboratorio, codigoQRModel.equipo.id, codigoQRModel.equipo.nombre, asignacionActual );
 			respuesta = new ObjetoResponse(200, false, 'No tienes ninguna clase en este momento o no te han asignado un equipo para esta clase.', false, false);
 			return resolve( respuesta );
 		}
 
-		/**
+		/*
 		 * 4.- Se compara el equipoID y laboratorio del codigoQR con los obtenidos
 		 * 		de las asignaciones del Alumno.
 		 */
 		
-		var equipoUtilizado;
-
-		equiposLab.forEach( equipoLab => {
-
-			if ( codigoQRModel.equipoID === equipoLab.equipoID && codigoQRModel.laboratorio === equipoLab.laboratorio.toUpperCase() ) {
-				equipoUtilizado = equipoLab;
-			}
+		var esUnEquipoAutorizado = false;
+		const mismoEquipo = codigoQRModel.equipo.id === asignacionActual.equipo.id;
+		const mismoLaboratorio = codigoQRModel.laboratorio === asignacionActual.clase.laboratorio.toUpperCase();
+		if ( mismoEquipo && mismoLaboratorio ) {
+			esUnEquipoAutorizado = true;
+		}
 			
-		});
 
 		/**
 		 * 5.- Si coinciden, se procede a verificar si previamente ya había
@@ -123,8 +128,9 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		 */
 
 		// Si es null, está en un equipo no autorizado.
-		if ( equipoUtilizado === undefined ) {
+		if ( !esUnEquipoAutorizado ) {
 			// TODO: Enviar registro a la BITÁCORA DE USO NO AUTORIZADO DE EQUIPOS (usosnoautorizados);
+			bitacorasCtrl.registrarUsoNoAutorizado( alumno, codigoQRModel.laboratorio, codigoQRModel.equipo.id, codigoQRModel.equipo.nombre, asignacionActual );
 			respuesta = new ObjetoResponse(401, false, 'No estás autorizado a usar este equipo', false, false);
 			return resolve( respuesta );
 		}
@@ -143,7 +149,7 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		}
 		
 		// Asistencias del alumno de la clase actual.
-		var asistenciasDelAlumno = alumno.asistencias[equipoUtilizado.claseID] || [];
+		var asistenciasDelAlumno = alumno.asistencias[asignacionActual.clase.id] || [];
 		
 		var yaSeHabiaRegistrado = false;
 		
@@ -163,11 +169,11 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		}
 
 		// Se genera el formato de la asistencia (e.g. '7-10-2019')
-		var formatoAsistencia = generarFormatoDeAsistencia( fechaHoy, equipoUtilizado.horaInicial, horaLlegada );
+		var formatoAsistencia = generarFormatoDeAsistencia( fechaHoy, asignacionActual.clase.horaInicial, horaLlegada );
 		// Se agrega la nueva asistencia al [] de asistencias de la clase actual.
 		asistenciasDelAlumno.push( formatoAsistencia );
 		// Se agrega el nuevo arreglo a las asistencias del alumno.
-		alumno.asistencias[equipoUtilizado.claseID] = asistenciasDelAlumno;
+		alumno.asistencias[asignacionActual.clase.id] = asistenciasDelAlumno;
 
 		var alumnoRef = firestore.collection('alumnos').doc( alumno.matricula );
 		
@@ -215,7 +221,6 @@ function diaDeLaSemana(day) {
 
 function generarFormatoDeAsistencia(fechaActual, horaInicial, horaLlegada) {
 	const diferencia = horaLlegada - horaInicial;
-	
 	if ( diferencia <= 10 ) {
 		return fechaActual + ':A';
 	} else if ( diferencia <= 15 ) {

@@ -305,12 +305,10 @@ app.put('/componente', mdAuthentication.esAdminOSuper, (req, res) => {
 // ====================================================== //
 // =================== ENCRIPTAR COOKIE ================= //
 // ====================================================== //
-app.get('/encriptar/laboratorio/:clave/equipo/:equipoID', mdAuthentication.esAdmin, (req, res) => {
-	const laboratorio = req.params.clave;
-	const equipoID = req.params.equipoID;
+app.post('/encriptar', mdAuthentication.esAdmin, (req, res) => {
 	const codigoQRModel = new CodigoQRModel();
 	return res.status(200).json({
-		cookie: codigoQRModel.encrypt({ equipoID, laboratorio })
+		cookie: codigoQRModel.encrypt( req.body.cookie )
 	});
 });
 
@@ -324,10 +322,13 @@ app.post('/desencriptar', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (req, 
 	codigoQRModel.decrypt(cookie);
 	return res.status( 200 ).json({
 		cookie: {
-			equipoID: codigoQRModel.equipoID,
-			laboratorio: codigoQRModel.laboratorio,
+			equipo: {
+				id: codigoQRModel.equipo.id,
+				nombre: codigoQRModel.equipo.nombre
+			},
+			laboratorio: codigoQRModel.laboratorio
 		}
-	})
+	});
 });
 
 

@@ -67,6 +67,7 @@ var ticketRoutes = require('./routes/ticket');
 var gruposRoutes = require('./routes/grupos');
 var topicsRoutes = require('./routes/topics');
 var clasificacionesRoutes = require('./routes/clasificaciones');
+var bitacorasRoutes = require('./routes/bitacoras');
 
 app.use('/alumno', alumnoRoutes);
 app.use('/profesor', profesorRoutes);
@@ -85,6 +86,7 @@ app.use('/ticket', ticketRoutes);
 app.use('/grupos', gruposRoutes);
 app.use('/topics', topicsRoutes);
 app.use('/clasificaciones', clasificacionesRoutes);
+app.use('/bitacoras', bitacorasRoutes);
 
 const port = process.env.PORT || 3000;
 

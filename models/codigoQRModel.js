@@ -3,13 +3,13 @@ var key = crypto.createHash('sha256').update(String('upperlab')).digest('base64'
 
 class CodigoQRModel {
 	constructor () {
-		this.equipoID = '';
+		this.equipo = { id: '', nombre: '' };
 		this.laboratorio = '';
 	}
 
 	encrypt( decrypted ) {
 		const iv = crypto.randomBytes(16);
-		var text = JSON.stringify({ equipoID: decrypted.equipoID, laboratorio: decrypted.laboratorio });
+		var text = JSON.stringify(decrypted);
 		var cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(key), iv);
 		var encrypted = cipher.update(text);
 		encrypted = Buffer.concat([encrypted, cipher.final()]);
@@ -26,7 +26,8 @@ class CodigoQRModel {
 		decrypted = Buffer.concat([decrypted, decipher.final()]);
 		var decryptedJson = JSON.parse(decrypted.toString());
 		console.log(decryptedJson);
-		this.equipoID = decryptedJson.equipoID;
+		this.equipo.id = decryptedJson.equipo.id;
+		this.equipo.nombre = decryptedJson.equipo.nombre;
 		this.laboratorio = decryptedJson.laboratorio;
 	}
 
