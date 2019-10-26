@@ -18,14 +18,14 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		
 		var fecha = new Date();
 		var diaHoy = fecha.getDay();
-		diaHoy = 3; // 'lunes' PRUEBA
+		// diaHoy = 3; // 'lunes' PRUEBA
 		var mes = fecha.getMonth();
 		var anio = fecha.getFullYear();
 		var horaLlegada = fecha.getHours() * 60 + fecha.getMinutes();
-		horaLlegada = 436; // 7:16 A.M. PRUEBA
+		// horaLlegada = 436; // 7:16 A.M. PRUEBA
 
-		var fechaHoy = fecha.getDate() + '-' + mes + '-' + anio;
-		fechaHoy = '30-9-2019'; // '28-9-2019' PRUEBA
+		var fechaHoy = fecha.getDate() + '-' + (mes+1) + '-' + anio;
+		// fechaHoy = '30-9-2019'; // '28-9-2019' PRUEBA
 		
 		diaHoy = diaDeLaSemana( diaHoy );
 

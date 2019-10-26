@@ -10,6 +10,7 @@ class AdminModel {
 		this.apellidoP = admin.apellidoP;
 		this.apellidoM = admin.apellidoM;
 		this.correo = admin.correo;
+		this.horario = admin.horario;
 	}
 
 	validarDatos() {
@@ -44,6 +45,7 @@ class AdminModel {
 			apellidoP: 	this.apellidoP,
 			apellidoM: 	this.apellidoM,
 			correo	 : 	this.correo,
+			horario  :  this.horario
 		};
 	}
 
