@@ -15,7 +15,7 @@ const profesoresRef = firestore.collection('profesores');
 // ====================================================== //
 // ============ Consultar profesor por matrícula ========== //
 // ====================================================== //
-app.get('/:matricula', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/:matricula', mdAuthentication.esAdminOSuperOProfesor, (req, res)=>{
 	
 	var matricula = req.params.matricula.toUpperCase();
 

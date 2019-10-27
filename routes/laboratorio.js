@@ -28,7 +28,7 @@ app.get('/edificio/:edificio', mdAuthentication.esAdminOSuper, (req, res)=>{
 // ====================================================== //
 // ========== Consultar todos los laboratorios ========== //
 // ====================================================== //
-app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/', mdAuthentication.esAdminOSuperOProfesor, (req, res)=>{
 
 	console.log('GET - Consultando todos los laboratorios...');
 	var respuesta;
@@ -280,6 +280,82 @@ app.delete('/:clave', mdAuthentication.esSuperadmin, (req, res) => {
 
 	
 });
+
+
+// ====================================================== //
+// ============ Actualizar Horas Disponibles ============ //
+// ====================================================== //
+app.put('/horasDisponibles', mdAuthentication.esAdminOSuper, (req, res) => {
+
+	var respuesta;
+
+	const id = req.body.id;
+	const horasDisponibles = req.body.horasDisponibles;
+	
+	if ( !id ) {
+
+		respuesta = new ObjetoResponse(400, false, 'No se envió el id del laboratorio', null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+
+	} else if ( !horasDisponibles ) {
+
+		respuesta = new ObjetoResponse(400, false, 'No se enviaron las horas disponibles del laboratorio', null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+	}
+
+	laboratoriosRef.doc( id ).update({ horasDisponibles }).then( () => {
+
+		respuesta = new ObjetoResponse(200, true, `Horas disponibles actualizadas con éxito`, null, null);
+		return res.status( respuesta.code ).json( respuesta.response );		
+
+	}).catch( error => {
+
+		console.log(error);
+		respuesta = new ObjetoResponse(404, false, `El laboratorio enviado no existe`, null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+	});
+});
+
+
+// ====================================================== //
+// ============= Consultar Horas Disponibles ============ //
+// ====================================================== //
+app.get('/:clave/horasDisponibles',/* mdAuthentication.esAdminOSuper,*/ (req, res) => {
+
+	var respuesta;
+	var horasDisponibles;
+	const clave = req.params.clave;
+	
+	
+	if ( !clave ) {
+
+		respuesta = new ObjetoResponse(400, false, 'No se envió la clave del laboratorio', null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+
+	}
+
+	laboratoriosRef.where( 'clave', '==', clave ).get().then( (querySnapshot) => {
+
+		if ( querySnapshot.empty ) {
+			respuesta = new ObjetoResponse(404, false, `Laboratorio con la clave ${clave} no encontrado.`, null, null);
+			return res.status( respuesta.code ).json( respuesta.response );
+		}
+
+		querySnapshot.forEach( laboratorio => {
+			horasDisponibles = laboratorio.data().horasDisponibles || {};
+		});
+		
+		respuesta = new ObjetoResponse(200, true, `Horas disponibles actualizadas con éxito`, { horasDisponibles }, null);
+		return res.status( respuesta.code ).json( respuesta.response );		
+
+	}).catch( error => {
+
+		console.log(error);
+		respuesta = new ObjetoResponse(404, false, `El laboratorio enviado no existe`, null, null);
+		return res.status( respuesta.code ).json( respuesta.response );
+	});
+});
+
 
 
 module.exports = app;
