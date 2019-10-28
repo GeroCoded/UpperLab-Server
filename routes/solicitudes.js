@@ -20,7 +20,7 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 	solicitudesRef.get().then( querySnapshot => {
 
 		if ( querySnapshot.empty ) {
-			respuesta = new ObjetoResponse(200, false, 'No hay ninguna solicitud', null);
+			respuesta = new ObjetoResponse(200, false, 'No hay ninguna solicitud', { solicitudes }, null);
 			respuesta.consoleLog();
 			return res.status(respuesta.code).json(respuesta.response);	
 		}
@@ -34,7 +34,7 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
 		});
 
 		
-		respuesta = new ObjetoResponse(200, false, 'Solicitudes consultadas exitosamente', { solicitudes }, null);
+		respuesta = new ObjetoResponse(200, true, 'Solicitudes consultadas exitosamente', { solicitudes }, null);
 		respuesta.consoleLog();
 		return res.status(respuesta.code).json(respuesta.response);	
 	}).catch( err => {
