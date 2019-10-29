@@ -31,9 +31,9 @@ exports.consultarEdificios = function consultarEdificios() {
 			return reject( respuesta );
 		});
 
-	})
+	});
 	
-}
+};
 
 
 
@@ -56,7 +56,28 @@ exports.crearEdificio = function crearEdificio( edificio ) {
 
 		});
 	});
-}
+};
+
+exports.modificarEdificio = function modificarEdificio( clave, edificio ) {
+	
+	return new Promise( (resolve, reject) => {
+
+	
+		var respuesta = new ObjetoResponse( 500, false, 'Internal Server Error', null, null );
+		
+		edificiosRef.doc( clave ).update( edificio ).then( () => {
+			
+			respuesta = new ObjetoResponse( 200, true, 'Edificio modificado exitosamente', null, null );
+			return resolve(respuesta);
+
+		}).catch( err => {
+
+			respuesta = new ObjetoResponse( 404, true, `El edificio con la clave ${ clave } no existe.`, null, err );
+			return resolve(respuesta);
+
+		});
+	});
+};
 
 
 exports.eliminarEdificio = async function eliminarEdificio( claveEdificio ) {
@@ -69,4 +90,4 @@ exports.eliminarEdificio = async function eliminarEdificio( claveEdificio ) {
 		console.log(err);
 		return new ObjetoResponse(500, false, 'Error inesperado al eliminar grupo', null, err);
 	}
-}
+};

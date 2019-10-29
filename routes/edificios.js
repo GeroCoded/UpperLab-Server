@@ -39,6 +39,24 @@ app.post('/', mdAuthentication.esAdminOSuper, (req, res) => {
 });
 
 
+/**
+ * ['PUT','/']
+ * Crear nuevo edificio.
+ */
+app.put('/:clave', mdAuthentication.esAdminOSuper, (req, res) => {
+	console.log('PUT: /edificios - Modificando edificio...');
+
+	edificiosCtrl.modificarEdificio( req.params.clave.toUpperCase(), req.body.edificio ).then( respuesta => {
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+	}).catch( err => {
+		console.log(err);
+		return new ObjetoResponse(500, false, 'Error inesperado al modificar edificio', null, err);
+	});
+
+});
+
+
 
 
 
