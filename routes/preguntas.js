@@ -10,7 +10,7 @@ const preguntasRef = firestore.collection('preguntas');
 
 
 
-app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{
+app.get('/', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (req, res)=>{
 	console.log('GET - Consultando preguntas... - ');
 
 	var respuesta = new ObjetoResponse(500, false, 'Error al consultar preguntas', null, null);

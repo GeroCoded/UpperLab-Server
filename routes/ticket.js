@@ -102,6 +102,7 @@ app.get('/:ticketID', mdAuthentication.esAdminOSuperOAlumnoOProfesor, (req, res)
  * Possible Query Params:
  *  - laboratorio
  *  - equipo
+ *  - estadoEncuesta
  */
 app.get('/', mdAuthentication.esAdminOSuper, (req, res) => {
 	console.log('GET - Consultando todos los tickets');
@@ -110,6 +111,7 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res) => {
 	// Query Params
 	var laboratorio = req.query.laboratorio;
 	var equipo = req.query.equipo;
+	var encuestaEstado = req.query.encuestaEstado;
 	var tickets = [];
 	
 	// Query
@@ -122,6 +124,10 @@ app.get('/', mdAuthentication.esAdminOSuper, (req, res) => {
 	if ( equipo ) {
 		console.log(equipo);
 		query = query.where('equipo.id', '==', equipo);
+	}
+	if ( encuestaEstado ) {
+		console.log(encuestaEstado);
+		query = query.where('encuesta.estado', '==', Number(encuestaEstado));
 	}
 
 	query.get().then( querySnapshot => {
