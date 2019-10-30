@@ -44,6 +44,19 @@ app.put('/formato/practicas', mdAuthentication.esAdminOSuperOProfesor, (req, res
 	
 });
 
+// Consultas las prácticas registradas.
+app.get('/practicas', mdAuthentication.esAdminOSuperOProfesor, (req, res) => {
+
+	bitacorasCtrl.consultarPracticas().then( respuesta => {
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+	}).catch( respuesta => {
+		respuesta.consoleLog();
+		return res.status(respuesta.code).json(respuesta.response);
+	});
+	
+});
+
 app.post('/practicas', mdAuthentication.esProfesor, (req, res) => {
 
 	bitacorasCtrl.registrarPractica(req.body.registro).then( respuesta => {

@@ -108,6 +108,33 @@ exports.actualizarFormatoDePracticas = function actualizarFormatoDePracticas(inp
 
 
 
+exports.consultarPracticas = function consultarPracticas() {
+
+	return new Promise( (resolve, reject) => {
+
+		var respuesta = new ObjetoResponse(500, false, 'Error al consultar prácticas de laboratorio', null, null);
+		
+		var practicas = {};
+
+		firestore.collection('bitacoras').doc('PRACTICAS').get().then( (documentSnapshot) => {
+
+			if ( !documentSnapshot.exists ) {
+				respuesta = new ObjetoResponse(200, false, 'No hay ninguna práctica registrada', { practicas }, null);
+				return resolve(respuesta);	
+			}
+
+			practicas = documentSnapshot.data();
+			
+			respuesta = new ObjetoResponse(200, true, 'Prácticas de laboratorio consultadas con éxito', { practicas }, null);
+			return resolve(respuesta);
+
+		}).catch( error => {
+			console.log(error);
+			return reject( respuesta );
+		});
+	});
+};
+
 exports.registrarPractica = function registrarPractica( registro ) {
 
 	return new Promise( (resolve, reject) => {
