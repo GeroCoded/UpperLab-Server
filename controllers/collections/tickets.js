@@ -43,10 +43,8 @@ exports.updateEstado = function updateEstado( id, estado, modificacion, administ
 		const noResuelto = estado === ESTADOS_TICKET.NO_RESUELTO;
 		const cancelado = estado === ESTADOS_TICKET.CANCELADO;
 		if ( resuelto || noResuelto || cancelado ) {
-			console.log('Entró');
 			data['encuesta.estado'] = ESTADOS_ENCUESTA.DISPONIBLE;
 		} else {
-			console.log('No entró');
 			data['encuesta.estado'] = ESTADOS_ENCUESTA.NO_DISPONIBLE;
 		}
 
