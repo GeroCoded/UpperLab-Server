@@ -238,7 +238,7 @@ app.put('/encuesta/:id', mdAuthentication.esAlumnoOProfesor, (req, res) => {
 // ====================================================== //
 // ================== ACTUALIZAR ESTADO ================= //
 // ====================================================== //
-app.put('/estado/:id', mdAuthentication.esAdminOSuper, (req, res) => {
+app.put('/estado/:id', mdAuthentication.esAdmin, (req, res) => {
 	console.log('PUT - Actualizando estado de ticket');
 
 	ticketsCtrl.updateEstado( req.params.id, req.body.estado, req.body.modificacion, req.body.administrador ).then( respuesta => {
