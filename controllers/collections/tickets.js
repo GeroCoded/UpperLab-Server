@@ -35,10 +35,10 @@ exports.setEncuesta = function setEncuesta( id, encuesta ) {
 	});
 };
 
-exports.updateEstado = function updateEstado( id, estado ) {
+exports.updateEstado = function updateEstado( id, estado, modificacion, administrador ) {
 	return new Promise( (resolve, reject) => {
 
-		const data = { estado };
+		const data = { estado, modificacion, administrador };
 		const resuelto = estado === ESTADOS_TICKET.RESUELTO;
 		const noResuelto = estado === ESTADOS_TICKET.NO_RESUELTO;
 		const cancelado = estado === ESTADOS_TICKET.CANCELADO;
