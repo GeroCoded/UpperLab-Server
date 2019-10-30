@@ -27,6 +27,9 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		var fechaHoy = fecha.getDate() + '-' + (mes+1) + '-' + anio;
 		// fechaHoy = '30-9-2019'; // '28-9-2019' PRUEBA
 		
+		console.log('La fecha de hoy');
+		console.log(fechaHoy);
+
 		diaHoy = diaDeLaSemana( diaHoy );
 
 		// ====================================================== //
@@ -84,13 +87,28 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 
 				const asignacion = alumno.asignaciones[key];
 
+				console.log('¿Dias iguales?');
+				console.log(diaHoy + ' === ' + asignacion.clase.dia);
+				console.log('');
+				console.log('');
+
 				if ( diaHoy === asignacion.clase.dia ) {
 					
+					console.log('¿La hora de llegada el alumno está dentro del tiempo de la clase?');
+					console.log( asignacion.clase.horaInicial + ' <= ' + horaLlegada + ' && ' + horaLlegada + ' < ' + asignacion.clase.horaFinal);
+					console.log( asignacion.clase.horaInicial <= horaLlegada && horaLlegada < asignacion.clase.horaFinal);
+ 
+					console.log('');
+					console.log('');
+
 					// ¿La hora de llegada el alumno está dentro del tiempo de la clase?
 					if ( asignacion.clase.horaInicial <= horaLlegada && horaLlegada < asignacion.clase.horaFinal ) {
 						// 3.- Se obtienen los equipoID's y los laboratorios.
 						asignacionActual = asignacion;
 						console.log('Rompiendo...');
+						console.log('Asignacion Actual:');
+						console.log(asignacionActual);
+						console.log('');
 						break;
 					}
 				}
