@@ -3,7 +3,7 @@
   "description": "Servidor para UpperLab",
   "scripts": {
     "lint": "eslint .",
-    "start": "node index.js"
+    "start": "env TZ='America/Mexico_City' node index.js"
   },
   "engines": {
     "node": "8"
