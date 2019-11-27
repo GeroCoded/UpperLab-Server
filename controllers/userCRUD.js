@@ -90,7 +90,7 @@ exports.consultarUsuarioPorMatricula = function consultarUsuarioPorMatricula( co
 		});
 		
 	});
-}
+};
 
 
 
@@ -170,7 +170,7 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 	}).then( cuentaDeUsuario => {
 
 		objetoResponse = new ObjetoResponse(500, false, `Ocurrió un error al asignar el rol del ${ usuarioSingular }`, null, null);
-		return authController.asignarRolAUsuario(cuentaDeUsuario.uid, customClaims)
+		return authController.asignarRolAUsuario(cuentaDeUsuario.uid, customClaims);
 
 	}).then( () => {
 
