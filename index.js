@@ -21,12 +21,25 @@ require('./sockets/socket-servidor');
 
 // FIREBASE ADMIN SDK
 const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
+
+// Configuraciones de ambos proyectos.
+const firstServiceAccount = require('./serviceAccountKey.json');
+const secondServiceAccount = require('./serviceAccountKey2.json');
+
 admin.initializeApp({
-	credential: admin.credential.cert(serviceAccount),
+	credential: admin.credential.cert(firstServiceAccount),
 	databaseURL: 'https://upperlab-e81d9.firebaseio.com'
 });
 
+let _second = admin.initializeApp(
+	{
+		credential: admin.credential.cert(secondServiceAccount),
+		databaseURL: 'https://upperbase-59339.firebaseio.com'
+	},
+	'second' // this name will be used to retrieve firebase instance. E.g. second.database();
+);
+
+module.exports.secondAdmin = _second;
 
 // Middleware de express-fileupload
 app.use(fileUpload());
