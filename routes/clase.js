@@ -1,5 +1,4 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
 var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
@@ -7,7 +6,13 @@ var ClaseModel = require('../models/clase');
 var clasesCtrl = require('../controllers/collections/clases');
 var app = express();
 
-const clasesRef = firestore.collection('clases');
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const clasesName = COLECCIONES.clases;
+const firestore = getBD( clasesName );
+
+// Referencias de Firestore 
+const clasesRef = firestore.collection( clasesName );
 
 // ====================================================== //
 // === Consultar Lista de Clases por Carrera y Grupo  === //

@@ -1,6 +1,11 @@
 
-const firestore = require('firebase-admin').firestore();
-const clasificacionesRef = firestore.collection('clasificaciones');
+// Firestore
+const { getBD, COLECCIONES } = require('../../config/config');
+const clasificacionesName = COLECCIONES.clasificaciones;
+const firestore = getBD( clasificacionesName );
+
+// Referencias de Firestore 
+const clasificacionesRef = firestore.collection(clasificacionesName);
 
 const ObjetoResponse = require('../../models/objetoResponse');
 

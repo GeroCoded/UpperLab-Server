@@ -1,5 +1,4 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
 var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
@@ -7,7 +6,13 @@ var LaboratorioModel = require('../models/laboratorio');
 
 var app = express();
 
-const laboratoriosRef = firestore.collection('laboratorios');
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const laboratoriosName = COLECCIONES.laboratorios;
+const firestore = getBD( laboratoriosName );
+
+// Referencias de Firestore 
+const laboratoriosRef = firestore.collection(laboratoriosName);
 
 // ====================================================== //
 // ========= Consultar laboratorio por edificio ========= //

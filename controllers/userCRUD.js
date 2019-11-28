@@ -1,8 +1,8 @@
 
-var firestore = require('firebase-admin').firestore();
+// Firestore
+const { getBD } = require('../config/config');
 
 var ServerResponse = require('http').ServerResponse;
-// var auth = require('firebase-admin').auth();
 
 var authController = require('../controllers/authentication');
 var archivosController = require('../controllers/archivos');
@@ -26,7 +26,7 @@ exports.obtenerTodosLosUsuarios = function obtenerTodosLosUsuarios( coleccion, u
 
 	var objetoResponse = new ObjetoResponse( 500, false, `Hubo un problema al consultar a los ${ coleccion }`, {usuarios}, null);
 
-	firestore.collection( coleccion ).get().then( querySnapshot => {
+	getBD( coleccion ).collection( coleccion ).get().then( querySnapshot => {
 
 		if ( querySnapshot.empty ) {
 			objetoResponse = new ObjetoResponse( 200, false, `No hay ningún ${ usuarioSingular } registrado`, {usuarios}, null);
@@ -72,7 +72,7 @@ exports.consultarUsuarioPorMatricula = function consultarUsuarioPorMatricula( co
 
 		var objetoResponse;
 
-		firestore.collection( coleccion ).doc( matricula ).get().then( documentSnapshot => {
+		getBD(coleccion).collection( coleccion ).doc( matricula ).get().then( documentSnapshot => {
 
 			if ( !documentSnapshot.exists ) {
 				objetoResponse = new ObjetoResponse( 400, false, `No existe ningún ${ usuarioSingular } con la matrícula ${ matricula }`, null, null );
@@ -151,7 +151,7 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 
 	objetoResponse.message = `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`;
 
-	firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
+	getBD(coleccion).collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
 
 		if ( !querySnapshot.empty ) {
 			objetoResponse = new ObjetoResponse(400, false, `Ya existe un ${ usuarioSingular } con la matricula ${ usuario.matricula }`, null, null);
@@ -160,7 +160,7 @@ exports.crearUsuario = function crearUsuario( coleccion, usuarioSingular, req, r
 
 		// Crear registro en Cloud Firestore
 		objetoResponse.message = `Ocurrió un error al almacenar al nuevo ${ usuarioSingular }`;
-		return firestore.collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() );
+		return getBD(coleccion).collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() );
 	
 	}).then( () => {
 		
@@ -300,7 +300,7 @@ function usuarioTieneErrores( usuario ) {
 function verificarExistencia( coleccion, usuario ) {
 
 	return new Promise( (resolve, reject) => {
-		firestore.collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
+		getBD(coleccion).collection( coleccion ).where('matricula', '==', usuario.matricula).get().then( querySnapshot => {
 			
 			if ( !querySnapshot.empty ) {
 				usuario.errores.push('Ya existe la matrícula');
@@ -317,7 +317,7 @@ function verificarExistencia( coleccion, usuario ) {
 
 function crearRegistro( coleccion, usuario ) {
 	return new Promise( (resolve, reject) => {
-		firestore.collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() ).then( () => {
+		getBD(coleccion).collection( coleccion ).doc( usuario.matricula ).set( usuario.toJson() ).then( () => {
 			return resolve();
 		}).catch( err => {
 			usuario.errores.push('Error al almacenar registro');
@@ -393,7 +393,7 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 
 	objetoResponse.message = `Ocurrió un error al verificar la existencia del ${ usuarioSingular }`;
 
-	firestore.collection( coleccion ).doc(usuario.matricula).get()
+	getBD(coleccion).collection( coleccion ).doc(usuario.matricula).get()
 	.then( documentSnapshot => {
 		
 		docSnapshotHolder = documentSnapshot;
@@ -407,7 +407,7 @@ exports.modificarUsuario = function modificarUsuario( coleccion, usuarioSingular
 
 		objetoResponse.message = `Ocurrió un error al actualizar al ${ usuarioSingular }`;
 		
-		return firestore.collection( coleccion ).doc( usuario.matricula ).set( documentData, {merge: true} );
+		return getBD(coleccion).collection( coleccion ).doc( usuario.matricula ).set( documentData, {merge: true} );
 
 	}).then( () => {
 
@@ -463,7 +463,7 @@ exports.eliminarUsuario = function eliminarUsuario( coleccion, usuarioSingular, 
 	matricula = matricula.toUpperCase();
 
 	objetoResponse.message = `Error al consultar ${ usuarioSingular } con matricula ${ matricula }`;
-	firestore.collection( coleccion ).doc( matricula ).get().then( documentSnapshot => {
+	getBD(coleccion).collection( coleccion ).doc( matricula ).get().then( documentSnapshot => {
 		
 		docSnapshotHolder = documentSnapshot;
 
@@ -473,7 +473,7 @@ exports.eliminarUsuario = function eliminarUsuario( coleccion, usuarioSingular, 
 		}
 		
 		objetoResponse.message = `Error al eliminar ${ usuarioSingular } con la matrícula ${ matricula }`;
-		return firestore.collection( coleccion ).doc( matricula ).delete();
+		return getBD(coleccion).collection( coleccion ).doc( matricula ).delete();
 	
 	}).then( () => {
 

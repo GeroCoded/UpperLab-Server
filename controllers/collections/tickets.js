@@ -1,6 +1,11 @@
 
-const firestore = require('firebase-admin').firestore();
-const ticketsRef = firestore.collection('tickets');
+// Firestore
+const { getBD, COLECCIONES } = require('../../config/config');
+const ticketsName = COLECCIONES.tickets;
+const firestore = getBD( ticketsName );
+
+// Referencias de Firestore 
+const ticketsRef = firestore.collection(ticketsName);
 
 const ObjetoResponse = require('../../models/objetoResponse');
 

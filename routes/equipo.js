@@ -1,6 +1,5 @@
 var express = require('express');
 var admin = require('firebase-admin');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var objectsController = require('../controllers/objects');
 
@@ -9,8 +8,13 @@ var CodigoQRModel = require('../models/codigoQRModel');
 
 var app = express();
 
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const equiposName = COLECCIONES.equipos;
+const firestore = getBD( equiposName );
 
-const equiposRef = firestore.collection('equipos');
+// Referencias de Firestore 
+const equiposRef = firestore.collection(equiposName);
 
 
 // ====================================================== //

@@ -1,11 +1,15 @@
 
-var admin = require('firebase-admin');
-var firestore = admin.firestore();
-var ObjetoResponse = require('../../models/objetoResponse');
+const ObjetoResponse = require('../../models/objetoResponse');
 
-const bitacorasRef = firestore.collection('bitacoras');
-const usosNoAutorizadosDoc = bitacorasRef.doc('NO-AUTORIZADO');
 
+// Firestore
+const { getBD, COLECCIONES, SUBCOLECCIONES } = require('../../config/config');
+const bitacorasName = COLECCIONES.bitacoras;
+const firestore = getBD( bitacorasName );
+
+// Referencias de Firestore 
+const bitacorasRef = firestore.collection(bitacorasName);
+const usosNoAutorizadosDoc = bitacorasRef.doc(SUBCOLECCIONES['NO-AUTORIZADO']);
 
 exports.registrarUsoNoAutorizado = function registrarUsoNoAutorizado( alumno, laboratorio, equipoID, equipoNombre, asignacionActual ) {
 

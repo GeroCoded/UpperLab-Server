@@ -1,9 +1,10 @@
 
-const firestore = require('firebase-admin').firestore();
-const clasesRef = firestore.collection('clases');
-
 const ObjetoResponse = require('../../models/objetoResponse');
 
+const { getBD, COLECCIONES } = require('../../config/config');
+const clasesName = COLECCIONES.clases;
+const firestore = getBD( clasesName );
+const clasesRef = firestore.collection(clasesName);
 
 exports.consultarClasesPorGrupo = function consultarClasesPorGrupo( grupoID ) {
 	return new Promise( (resolve, reject) => {

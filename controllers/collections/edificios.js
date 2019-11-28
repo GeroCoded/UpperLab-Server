@@ -1,10 +1,12 @@
 
-var firestore = require('firebase-admin').firestore();
-var edificiosRef = firestore.collection('edificios');
-var ObjetoResponse = require('../../models/objetoResponse');
-var BREAK_MESSAGE = require('../../config/config').BREAK_MESSAGE;
 
+const ObjetoResponse = require('../../models/objetoResponse');
+const BREAK_MESSAGE = require('../../config/config').BREAK_MESSAGE;
 
+const { getBD, COLECCIONES } = require('../../config/config');
+const edificiosName = COLECCIONES.edificios;
+const firestore = getBD( edificiosName );
+const edificiosRef = firestore.collection(edificiosName);
 
 exports.consultarEdificios = function consultarEdificios() {
 	

@@ -16,6 +16,7 @@ exports.esAdmin = function esAdmin(req, res, next) {
 	}
 
 	return auth.verifyIdToken(token).then( (claims)=>{
+		console.log(claims);
 		if ( claims.isAdmin ) {
 			return next();
 		} else {
@@ -60,9 +61,10 @@ exports.esSuperadmin = function esSuperadmin(req, res, next) {
 	if( token === null || token === undefined ) {
 		return res.status(401).json(PERMISOS_INSUFICIENTES);
 	}
-
+	auth.verifyIdToken
 	return auth.verifyIdToken(token).then( (claims)=>{
 		if ( claims.isSuperadmin ) {
+			claims
 			return next();
 		} else {
 			return res.status(401).json(PERMISOS_INSUFICIENTES);

@@ -1,7 +1,12 @@
 
-var admin = require('firebase-admin');
-var firestore = admin.firestore();
-var gruposRef = firestore.collection('grupos');
+// Firestore
+const { getBD, COLECCIONES } = require('../../config/config');
+const gruposName = COLECCIONES.grupos;
+const firestore = getBD( gruposName );
+
+// Referencias de Firestore 
+const gruposRef = firestore.collection(gruposName);
+
 var ObjetoResponse = require('../../models/objetoResponse');
 var BREAK_MESSAGE = require('../../config/config').BREAK_MESSAGE;
 

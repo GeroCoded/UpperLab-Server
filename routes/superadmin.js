@@ -1,12 +1,19 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 
 var userCRUD = require('../controllers/userCRUD');
 
 var app = express();
 
-const COLECCION = 'superadmins';
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const superadminsName = COLECCIONES.superadmins;
+const firestore = getBD( superadminsName );
+
+// Referencias de Firestore 
+const superadminsRef = firestore.collection(superadminsName);
+
+const COLECCION = superadminsRef;
 const USUARIO_SINGULAR = 'superadministrador';
 const USUARIO_PLURAL = 'superadministradores';
 
@@ -26,7 +33,7 @@ app.get('/:matricula', mdAuthentication.esSuperadmin, (req, res)=>{
 	
 	var matricula = req.params.matricula.toUpperCase();
 
-	firestore.collection(COLECCION).doc(matricula).get()
+	superadminsRef.doc(matricula).get()
 	.then( superadminDoc => {
 	
 		if ( !superadminDoc.exists ) {

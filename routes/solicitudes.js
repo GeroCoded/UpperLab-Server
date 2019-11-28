@@ -1,13 +1,16 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
 
 var app = express();
 
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const solicitudesName = COLECCIONES.solicitudes;
+const firestore = getBD( solicitudesName );
 
-const solicitudesRef = firestore.collection('solicitudes');
-
+// Referencias de Firestore 
+const solicitudesRef = firestore.collection(solicitudesName);
 
 
 app.get('/', mdAuthentication.esAdminOSuper, (req, res)=>{

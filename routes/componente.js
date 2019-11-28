@@ -1,11 +1,16 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 
 var app = express();
 
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const componentesName = COLECCIONES.componentes;
+const firestore = getBD( componentesName );
 
-const componentesRef = firestore.collection('componentes');
+// Referencias de Firestore 
+const componentesRef = firestore.collection(componentesName);
+
 
 // ====================================================== //
 // =========== Consultar todos los componentes ========== //

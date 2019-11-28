@@ -1,6 +1,10 @@
 var express = require('express');
 var admin = require('firebase-admin');
-var firestore = admin.firestore();
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const alumnosName = COLECCIONES.alumnos;
+const firestore = getBD( alumnosName );
+
 
 var mdAuthentication = require('./middlewares/authentication');
 var userCRUD = require('../controllers/userCRUD');

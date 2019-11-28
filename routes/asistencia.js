@@ -1,20 +1,12 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
-var BREAK_MESSAGE = require('../config/config').BREAK_MESSAGE;
-
-// Modelos
-var ClaseModel = require ('./../models/clase');
-var AlumnoModel = require ('./../models/alumno');
-var CodigoQRModel = require ('./../models/codigoQRModel');
 
 // Controller
 const asistenciaCtrl = require('../controllers/collections/asistencias');
 
 var app = express();
 
-const clasesRef = firestore.collection('clases');
 
 
 /**

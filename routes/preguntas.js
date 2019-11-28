@@ -1,12 +1,17 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 var ObjetoResponse = require('../models/objetoResponse');
 
 var app = express();
 
 
-const preguntasRef = firestore.collection('preguntas');
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const preguntasName = COLECCIONES.preguntas;
+const firestore = getBD( preguntasName );
+
+// Referencias de Firestore 
+const preguntasRef = firestore.collection(preguntasName);
 
 
 

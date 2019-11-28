@@ -1,12 +1,15 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 
 var app = express();
 
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const plantillasName = COLECCIONES.plantillas;
+const firestore = getBD( plantillasName );
 
-const plantillasRef = firestore.collection('plantillas');
-
+// Referencias de Firestore 
+const plantillasRef = firestore.collection(plantillasName);
 
 
 // ====================================================== //

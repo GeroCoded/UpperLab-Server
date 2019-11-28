@@ -1,7 +1,12 @@
 
 var admin = require('firebase-admin');
-var firestore = admin.firestore();
 var ObjetoResponse = require('../../models/objetoResponse');
+
+// Firestore
+const { getBD, COLECCIONES } = require('../../config/config');
+const alumnosName = COLECCIONES.alumnos;
+const firestore = getBD( alumnosName );
+const alumnosRef = firestore.collection(alumnosName);
 
 // Controllers
 const bitacorasCtrl = require('./bitacoras');
@@ -193,9 +198,9 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		// Se agrega el nuevo arreglo a las asistencias del alumno.
 		alumno.asistencias[asignacionActual.clase.id] = asistenciasDelAlumno;
 
-		var alumnoRef = firestore.collection('alumnos').doc( alumno.matricula );
+		alumnosRef.doc( alumno.matricula );
 		
-		alumnoRef.update({ asistencias: alumno.asistencias }, {merge: true}).then( () => {
+		alumnosRef.update({ asistencias: alumno.asistencias }, {merge: true}).then( () => {
 			respuesta = new ObjetoResponse(201, true, 'Asistencia registrada con éxito.', false, false);
 			return resolve( respuesta );
 		}).catch( err => {

@@ -1,16 +1,22 @@
 var express = require('express');
-var firestore = require('firebase-admin').firestore();
 var mdAuthentication = require('./middlewares/authentication');
 
 var userCRUD = require('../controllers/userCRUD');
 
 var app = express();
 
-const COLECCION = 'profesores';
+
+// Firestore
+const { getBD, COLECCIONES } = require('../config/config');
+const profesoresName = COLECCIONES.profesores;
+const firestore = getBD( profesoresName );
+
+// Referencias de Firestore 
+const profesoresRef = firestore.collection(profesoresName);
+
+const COLECCION = profesoresName;
 const USUARIO_SINGULAR = 'profesor';
 const USUARIO_PLURAL = 'profesores';
-
-const profesoresRef = firestore.collection('profesores');
 
 // ====================================================== //
 // ============ Consultar profesor por matrícula ========== //
