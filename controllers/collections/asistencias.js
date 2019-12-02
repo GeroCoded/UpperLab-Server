@@ -1,5 +1,4 @@
 
-var admin = require('firebase-admin');
 var ObjetoResponse = require('../../models/objetoResponse');
 
 // Firestore

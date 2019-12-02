@@ -3,10 +3,10 @@ const ObjetoResponse = require('../../models/objetoResponse');
 
 
 // Firestore
-const { getBD, getAdmin, COLECCIONES, SUBCOLECCIONES } = require('../../config/config');
+const { getBD, COLECCIONES, SUBCOLECCIONES } = require('../../config/config');
 const bitacorasName = COLECCIONES.bitacoras;
 const firestore = getBD( bitacorasName );
-const admin = getAdmin( bitacorasName );
+const admin = require('firebase-admin');
 
 // Referencias de Firestore 
 const bitacorasRef = firestore.collection(bitacorasName);
