@@ -97,3 +97,12 @@ module.exports.getBD = function getBD( coleccion ) {
 	}
 };
 
+module.exports.getAdmin = function getAdmin( coleccion ) {
+	if ( coleccionesArrayA.includes(coleccion) ) {
+		return require('firebase-admin');
+	} else if ( coleccionesArrayB.includes(coleccion) ) {
+		const { secondAdmin } = require('../index');
+		return secondAdmin;
+	}
+};
+
