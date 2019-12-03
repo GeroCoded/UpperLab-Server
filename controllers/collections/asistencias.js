@@ -27,12 +27,13 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		var anio = fecha.getFullYear();
 		var horaLlegada = fecha.getHours() * 60 + fecha.getMinutes();
 		// horaLlegada = 436; // 7:16 A.M. PRUEBA
-
 		var fechaHoy = fecha.getDate() + '-' + (mes+1) + '-' + anio;
 		// fechaHoy = '30-9-2019'; // '28-9-2019' PRUEBA
 		
 		console.log('La fecha de hoy');
 		console.log(fechaHoy);
+		console.log('Hora de llegada (min): ' + horaLlegada);
+		console.log('Hora de llegada (HH:mm): ' + fecha.getHours() + ':' + fecha.getMinutes());
 
 		diaHoy = diaDeLaSemana( diaHoy );
 
@@ -151,7 +152,6 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 
 		// Si es null, está en un equipo no autorizado.
 		if ( !esUnEquipoAutorizado ) {
-			// TODO: Enviar registro a la BITÁCORA DE USO NO AUTORIZADO DE EQUIPOS (usosnoautorizados);
 			bitacorasCtrl.registrarUsoNoAutorizado( alumno, codigoQRModel.laboratorio, codigoQRModel.equipo.id, codigoQRModel.equipo.nombre, asignacionActual );
 			respuesta = new ObjetoResponse(401, false, 'No estás autorizado a usar este equipo', false, false);
 			return resolve( respuesta );

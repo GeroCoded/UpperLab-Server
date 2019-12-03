@@ -60,7 +60,7 @@ class Client {
 	}
 
 	agregarClientInfo( socketId, matricula, nombre, rol ) {
-		this.socketId = socketId
+		this.socketId = socketId;
 		this.matricula = matricula;
 		this.nombre = nombre;
 		this.rol = rol;
