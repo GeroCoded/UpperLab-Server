@@ -158,7 +158,7 @@ io.of('/chat').on('connection', (socket) => {
 		
 		const clienteDesconectado = clients.deleteClientBySocketId( socket.id );
 		console.log(clienteDesconectado);
-		if ( clienteDesconectado.rol === ROLES.ALUMNO || clienteDesconectado.rol === ROLES.PROFESOR ) {
+		if ( clienteDesconectado && clienteDesconectado.rol === ROLES.ALUMNO || clienteDesconectado.rol === ROLES.PROFESOR ) {
 			clienteDesconectado.rooms.forEach( room => {
 				const mensaje = mensajeBot(`${clienteDesconectado.nombre} se desconectó.`, room);
 				socket.to(mensaje.sala).emit('recibirMensaje', mensaje);
