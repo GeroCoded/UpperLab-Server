@@ -13,7 +13,7 @@ const firestore = getBD( superadminsName );
 // Referencias de Firestore 
 const superadminsRef = firestore.collection(superadminsName);
 
-const COLECCION = superadminsRef;
+const COLECCION = superadminsName;
 const USUARIO_SINGULAR = 'superadministrador';
 const USUARIO_PLURAL = 'superadministradores';
 

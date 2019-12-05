@@ -91,19 +91,32 @@ io.of('/usuario').on('connection', (socket) => {
  * Conjunto de eventos para los usuarios que están en el chat.
  */
 io.of('/chat').on('connection', (socket) => {
-	
+	console.log('');
+	// console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+	console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'connection');
 	console.log('\x1b[32m%s\x1b[0m', 'Usuario en CHAT Conectado');
 
 	socket.on('guardarInfoCliente', (data) => {
-		console.log('Agregando usuario en CHAT... ' + socket.id);
+		console.log('');
+		console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+		console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'guardarInfoClient');
+		console.log('\x1b[33m%s\x1b[0m', 'Agregando usuario en CHAT... ' + socket.id);
+
 		clients.addClient( socket.id, data.matricula, data.nombre, data.rol );
-		console.log(clients.getClients());
+
+		console.log('\x1b[36m%s\x1b[0m', 'Info de Clientes: ');
+		console.log(clients.getClientsInfo());
+		console.log('');
 	});
 
 	/**
 	 * Evento para entrar a las salas
 	 */
 	socket.on('join', (data) => {
+		console.log('');
+		console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+		console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'join');
+
 		socket.join(data.rooms, () => {
 			console.log(data.nombre + ' ingreso a las salas: ' + data.rooms.join(', '));
 			
@@ -114,6 +127,7 @@ io.of('/chat').on('connection', (socket) => {
 				socket.to(mensaje.sala).emit('recibirMensaje', mensaje);
 	
 			});
+			console.log('');
 		});
 
 	});
@@ -123,13 +137,15 @@ io.of('/chat').on('connection', (socket) => {
 	 */
 	socket.on('nuevoMensaje', (mensaje) => {
 		console.log('');
-		console.log('');
+		console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+		console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'nuevoMensaje');
 		console.log('Se recibió un mensaje: ');
 		console.log(mensaje);
 		console.log('');
 		console.log('Mis salas:');
 		console.log(socket.rooms);
 		console.log('');
+
 		socket.to(mensaje.sala).emit('recibirMensaje', mensaje);
 	});
 
@@ -142,8 +158,11 @@ io.of('/chat').on('connection', (socket) => {
 	 * del chat.
 	 */
 	socket.on('notificacion', (data) => {
-		console.log('Notificación recibida: ');
+		console.log('');
+		console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+		console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'notificacion');
 		console.log(data);
+		console.log('');
 		/**
 		 * Enviar la notificación a los administradores.
 		 */
@@ -155,44 +174,48 @@ io.of('/chat').on('connection', (socket) => {
 	 * Evento para cuando se desconecta el usuario
 	 */
 	socket.on('disconnect', (reason) => {
-		
+		console.log('');
+		console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+		console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'disconnect');
+		console.log('Cliente desconectado: ');
 		const clienteDesconectado = clients.deleteClientBySocketId( socket.id );
 		console.log(clienteDesconectado);
-		if ( clienteDesconectado && clienteDesconectado.rol === ROLES.ALUMNO || clienteDesconectado.rol === ROLES.PROFESOR ) {
+		if ( clienteDesconectado && (clienteDesconectado.rol === ROLES.ALUMNO || clienteDesconectado.rol === ROLES.PROFESOR) ) {
 			clienteDesconectado.rooms.forEach( room => {
 				const mensaje = mensajeBot(`${clienteDesconectado.nombre} se desconectó.`, room);
 				socket.to(mensaje.sala).emit('recibirMensaje', mensaje);
 			});
 		}
+		console.log('');
 	});
 });
 
-// io.on('connection', (socket) => {
-// 	console.log('\x1b[32m%s\x1b[0m', 'Conexión Detectada');
-	
-// });
 
-
-// io.on('connection', (client) => {
-	// console.log('\x1b[32m%s\x1b[0m', 'Usuario Conectado');
-
-
-	// client.on('join', (data) => {
-	// 	client.join(data.sala);
-	// 	console.log(data.user + ' ingreso a la sala: ' + data.sala);
-	// 	client.broadcast.to(data.sala).emit('nuevoUsuario ', {user:data.user, mensaje: ' ha ingresado a esta sala'});
-	// });
-
-	// client.on('leave', (data) => {
-	// 	console.log(data.user + ' dejó la sala: ' + data.sala);
-	// 	client.broadcast.to(data.sala).emit('Un usuario a abandonado la sala ', {user:data.user, mensaje:' abandonó la sala'});
-	// 	client.leave(data.sala);
-	// });
-
-// 	client.on('nuevoMensaje', (data) => {
-// 		console.log('Información recibida: ', data);
-// 		io.in(data.sala).emit('Respuesta', { mensaje: data })
-// 	});
-
-// });
-
+/**
+ * Colores: 
+ * Reset = "\x1b[0m"
+ * Bright = "\x1b[1m"
+ * Dim = "\x1b[2m"
+ * Underscore = "\x1b[4m"
+ * Blink = "\x1b[5m"
+ * Reverse = "\x1b[7m"
+ * Hidden = "\x1b[8m"
+ * 
+ * FgBlack = "\x1b[30m"
+ * FgRed = "\x1b[31m"
+ * FgGreen = "\x1b[32m"
+ * FgYellow = "\x1b[33m"
+ * FgBlue = "\x1b[34m"
+ * FgMagenta = "\x1b[35m"
+ * FgCyan = "\x1b[36m"
+ * FgWhite = "\x1b[37m"
+ * 
+ * BgBlack = "\x1b[40m"
+ * BgRed = "\x1b[41m"
+ * BgGreen = "\x1b[42m"
+ * BgYellow = "\x1b[43m"
+ * BgBlue = "\x1b[44m"
+ * BgMagenta = "\x1b[45m"
+ * BgCyan = "\x1b[46m"
+ * BgWhite = "\x1b[47m"
+ */

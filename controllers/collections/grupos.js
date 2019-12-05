@@ -3,6 +3,7 @@
 const { getBD, COLECCIONES } = require('../../config/config');
 const gruposName = COLECCIONES.grupos;
 const firestore = getBD( gruposName );
+const admin = require('firebase-admin');
 
 // Referencias de Firestore 
 const gruposRef = firestore.collection(gruposName);
@@ -52,7 +53,7 @@ exports.consultarGrupos = async function consultarGrupos( activo, carrera ) {
 		
 		querySnapshot.forEach( grupo => {
 			grupos.push(grupo.data());
-		})
+		});
 		
 		respuesta = new ObjetoResponse( 200, true, null, { grupos }, null);
 		return respuesta;
@@ -92,7 +93,7 @@ exports.crearGrupo = function crearGrupo( grupo ) {
 
 		});
 	});
-}
+};
 
 
 exports.modificarGrupoCompleto = function modificarGrupoCompleto( grupoID, grupo ) {
@@ -105,10 +106,10 @@ exports.modificarGrupoCompleto = function modificarGrupoCompleto( grupoID, grupo
 		}).catch( err => {
 			console.log(err);
 			return resolve(new ObjetoResponse( 500, false, 'Error al modificar grupo.', null, err ));
-		})
+		});
 		
 	});
-}
+};
 
 
 
@@ -122,7 +123,7 @@ exports.eliminarGrupo = async function eliminarGrupo( grupoID ) {
 		console.log(err);
 		return new ObjetoResponse(500, false, 'Error inesperado al eliminar grupo', null, err);
 	}
-}
+};
 
 /**
  * Agrega o quita la matrícula del alumno de su grupo y sus clases.
@@ -158,7 +159,7 @@ exports.agregarOQuitarAlumno = function agregarOQuitarAlumno( grupoID, matricula
 			} else {
 				batch.update( ref, { alumnos: admin.firestore.FieldValue.arrayRemove( matricula )});
 			}
-		})
+		});
 
 		return batch.commit();
 	}).then( respuesta => {
@@ -166,7 +167,7 @@ exports.agregarOQuitarAlumno = function agregarOQuitarAlumno( grupoID, matricula
 	}).catch( respuesta => {
 		console.log(respuesta);
 		respuesta.consoleLog();
-	})
+	});
 	
 
-}
+};

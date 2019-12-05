@@ -29,6 +29,16 @@ class Clients {
 		return this.clients;
 	}
 
+	getClientsInfo() {
+		return this.clients.map( client => {
+			const clientObj = {};
+			clientObj.socketId = client.socketId;
+			clientObj.matricula = client.matricula;
+			clientObj.rol = client.rol;
+			return clientObj;
+		});
+	}
+
 	// Obtener clientes por sala (room)
 	getClientByRoom( room ) {
 		//...

@@ -22,13 +22,13 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		
 		var fecha = new Date();
 		var diaHoy = fecha.getDay();
-		// diaHoy = 3; // 'lunes' PRUEBA
+		// diaHoy = 2; // 'martes' PRUEBA
 		var mes = fecha.getMonth();
 		var anio = fecha.getFullYear();
 		var horaLlegada = fecha.getHours() * 60 + fecha.getMinutes();
 		// horaLlegada = 436; // 7:16 A.M. PRUEBA
 		var fechaHoy = fecha.getDate() + '-' + (mes+1) + '-' + anio;
-		// fechaHoy = '30-9-2019'; // '28-9-2019' PRUEBA
+		// fechaHoy = '03-12-2019'; // '28-9-2019' PRUEBA
 		
 		console.log('La fecha de hoy');
 		console.log(fechaHoy);
@@ -197,9 +197,7 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		// Se agrega el nuevo arreglo a las asistencias del alumno.
 		alumno.asistencias[asignacionActual.clase.id] = asistenciasDelAlumno;
 
-		alumnosRef.doc( alumno.matricula );
-		
-		alumnosRef.update({ asistencias: alumno.asistencias }, {merge: true}).then( () => {
+		alumnosRef.doc( alumno.matricula ).update({ asistencias: alumno.asistencias }, {merge: true}).then( () => {
 			respuesta = new ObjetoResponse(201, true, 'Asistencia registrada con éxito.', false, false);
 			return resolve( respuesta );
 		}).catch( err => {
