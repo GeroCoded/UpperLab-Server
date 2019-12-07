@@ -26,7 +26,7 @@ exports.registrarAsistencia = function registrarAsistencia( alumno, encryptedDat
 		var mes = fecha.getMonth();
 		var anio = fecha.getFullYear();
 		var horaLlegada = fecha.getHours() * 60 + fecha.getMinutes();
-		horaLlegada = 436; // 7:16 A.M. PRUEBA
+		// horaLlegada = 436; // 7:16 A.M. PRUEBA
 		var fechaHoy = fecha.getDate() + '-' + (mes+1) + '-' + anio;
 		// fechaHoy = '03-12-2019'; // '28-9-2019' PRUEBA
 		

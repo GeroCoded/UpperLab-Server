@@ -191,6 +191,35 @@ io.of('/chat').on('connection', (socket) => {
 });
 
 
+io.of('/login').on('connection', (socket) => {
+	console.log('');
+	// console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+	console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'connection');
+	console.log('\x1b[32m%s\x1b[0m', 'PC en LOGIN Conectada');
+
+	// Generar UUID para el nombre de la sala
+	// const room = 'HARDCODED-ROOM123';
+
+	socket.emit('uuid', socket.id);
+
+	socket.on('codigoQREscaneado', (codigoQR) => {
+		console.log('codigoQREscaneado');
+		console.log(codigoQR);
+		console.log(codigoQR.uuid);
+		
+		socket.to(codigoQR.uuid).emit('loguearse', codigoQR);
+		socket.emit('loginResult', 'succeeessss');
+	});
+
+	socket.on('disconnect', (reason) => {
+		console.log('');
+		console.log('\x1b[47m\x1b[30m%s\x1b[0m', '================================================================');
+		console.log('\x1b[44m\x1b[37m%s\x1b[0m', 'disconnect');
+		console.log('PC desconectada: ');
+	});
+	
+});
+
 /**
  * Colores: 
  * Reset = "\x1b[0m"
